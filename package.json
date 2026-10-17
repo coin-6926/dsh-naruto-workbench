@@ -1,0 +1,55 @@
+{
+  "name": "@dsh-external/naruto-workbench",
+  "version": "0.1.0",
+  "description": "火影忍者手游战力工作台（DeepSeek Harness 插件）：16 板块面板 + 本地即时诊断（战力构成 / 短板 / 虚战 / 目标倒推）+ 一键把结构化结论交给 agent 深入分析。内置带来源与置信度的战力数值表，并注册 3 个 agent 工具供对话中查数与算数。",
+  "private": true,
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "docs"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "naruto",
+    "火影忍者",
+    "战力",
+    "game-tool"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coin-6926/dsh-naruto-workbench.git"
+  },
+  "homepage": "https://github.com/coin-6926/dsh-naruto-workbench#readme",
+  "bugs": {
+    "url": "https://github.com/coin-6926/dsh-naruto-workbench/issues"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node tests/selftest.mjs",
+    "selftest": "node tests/selftest.mjs"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-slots"
+      ],
+      "platform": "web"
+    }
+  }
+}
