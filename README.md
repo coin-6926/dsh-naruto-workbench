@@ -146,7 +146,7 @@ cd dsh-naruto-workbench
 ## 开发
 
 ```bash
-node tests/selftest.mjs     # 122 项自测（host 工具 + client 渲染 + 跨端一致性），无需浏览器
+node tests/selftest.mjs     # 129 项自测（host 工具 + client 渲染 + 跨端一致性），无需浏览器
 ```
 
 ### 踩过的坑（都做成了永久测试）

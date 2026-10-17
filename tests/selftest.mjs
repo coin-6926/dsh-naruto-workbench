@@ -61,11 +61,11 @@ ok('成长曲线：神器 3 档（70/140/280）',
 ok('成长曲线：通灵进阶有 sweetSpots（最优节点）',
   Array.isArray(PD.growth.spiritAdvance.sweetSpots) && PD.growth.spiritAdvance.sweetSpots.length >= 2)
 ok('成长曲线：勾玉体现实测数据', PD.growth.jade.bodyTotals.length === 2)
-ok('战力标准表覆盖 60~160 级（含 155/160 新段）',
-  PD.powerStandards.table.length >= 14 &&
-  PD.powerStandards.table[0].level === 60 &&
+ok('战力标准表覆盖 50~160 级（含 50 与 155/160 段）',
+  PD.powerStandards.table.length >= 15 &&
+  PD.powerStandards.table[0].level === 50 &&
   PD.powerStandards.table[PD.powerStandards.table.length - 1].level === 160,
-  `${PD.powerStandards.table.length} 行, 末行 ${PD.powerStandards.table[PD.powerStandards.table.length - 1].level} 级`)
+  `${PD.powerStandards.table.length} 行, 首行 ${PD.powerStandards.table[0].level} 级, 末行 ${PD.powerStandards.table[PD.powerStandards.table.length - 1].level} 级`)
 ok('战力标准表标为低置信且带诚实声明',
   PD.powerStandards.confidence === 'low' && typeof PD.powerStandards.independentSourceWarning === 'string',
   PD.powerStandards.confidence)
@@ -208,7 +208,46 @@ for (const s of ['growth', 'standards', 'income', 'priority', 'inflation', 'weig
   ok(`reference[${s}] 返回数据`, r.data && Object.keys(r.data).length > 0)
 }
 const refAll = await tools.naruto_reference.execute({ section: 'all' })
-ok('reference[all] 含全部 7 区块', Object.keys(refAll.data).length === 7, Object.keys(refAll.data).join(','))
+ok('reference[all] 含全部 9 区块', Object.keys(refAll.data).length === 9, Object.keys(refAll.data).join(','))
+
+ok('★ 跨游戏污染名单存在且点名 huoyin.qq.com',
+  Array.isArray(PD.crossGameTraps) &&
+  PD.crossGameTraps.some(t => String(t.domain).includes('huoyin.qq.com')) &&
+  PD.crossGameTraps.some(t => String(t.game).includes('OL')),
+  (PD.crossGameTraps || []).length + ' 条')
+
+ok('★ OL 的减法框架被明确标为「不可用于手游」',
+  PD.elemCrossCheck.subtractFramework.usableForMobile === false &&
+  /Online|OL/.test(String(PD.elemCrossCheck.subtractFramework.belongsTo)),
+  PD.elemCrossCheck.subtractFramework.belongsTo)
+
+ok('★ ÷20 只算 1 个来源（不得伪称 OL 也印证）',
+  PD.elemCrossCheck.twentyPerPercent.confidence === 'medium' &&
+  PD.elemCrossCheck.twentyPerPercent.sourceCount === 1 &&
+  PD.elemCrossCheck.twentyPerPercent.lines.length === 1 &&
+  typeof PD.elemCrossCheck.twentyPerPercent.rejectedSecondSource === 'string',
+  `confidence=${PD.elemCrossCheck.twentyPerPercent.confidence}, lines=${PD.elemCrossCheck.twentyPerPercent.lines.length}`)
+
+ok('★ 属性防御 10 / 属性攻击 6 仍为未确证（没有被用户资料说服）',
+  PD.elemCrossCheck.elemDefPerPoint.confidence === 'unverified' &&
+  PD.elemCrossCheck.elemAtkPerPoint.confidence === 'unverified')
+
+ok('★ 通灵消耗表：存了但标低置信，且带内部矛盾 flag',
+  PD.growth.spiritCostTable.rows.length === 17 &&
+  PD.growth.spiritCostTable.confidence === 'low' &&
+  PD.growth.spiritCostTable.rows.some(r => r.flag),
+  PD.growth.spiritCostTable.rows.filter(r => r.flag).length + ' 行带 flag')
+
+ok('★ 通灵消耗表的分组边界与小米等级上限一致（差 1 级是 0→N 计数）',
+  PD.growth.spiritCostTable.rows.find(r => r.name === '忍犬').maxLevel === 50 &&
+  PD.growth.spiritCostTable.rows.find(r => r.name === '鲛鲨').maxLevel === 150 &&
+  PD.growth.spiritCostTable.rows.find(r => r.name === '蛤蟆龙').maxLevel === 300 &&
+  PD.growth.spiritCostTable.rows.find(r => r.name === '蜘蛛').maxLevel === 600)
+
+ok('★ 不可核对来源必须留痕（verified:false + 说明 HTTP200 不代表内容存在）',
+  PD.sources.spirit_cost_table.verified === false &&
+  /72914/.test(PD.sources.spirit_cost_table.note),
+  'spirit_cost_table.verified=' + PD.sources.spirit_cost_table.verified)
 
 section('6. 鲁棒性（畸形输入）')
 for (const bad of [null, undefined, {}, { panel: null }, { panel: { boards: null } }, { panel: { boards: { x: null } } }]) {
