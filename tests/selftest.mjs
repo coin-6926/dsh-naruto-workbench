@@ -281,21 +281,48 @@ ok('client 导出 apply/inject', typeof captured?.exports?.apply === 'function' 
 ok('client inject 含 slots（apply 用 ctx.slots 的前提）',
   captured?.exports?.inject?.includes('slots'), JSON.stringify(captured?.exports?.inject))
 
-let reg = null
+/* ★ register 的**真实契约是两参数** (options, component) —— stub 必须照此实现，否则会漏掉
+ *   "component 放错位置"这类 bug（曾经就是这样漏掉的：测试全绿但宿主拿不到组件）。
+ *   见 @deepseek-ai/dsh-client-ui-slots/lib/types/index.d.ts:789
+ *     register<K>(options: BaseOptions & {...}, component: C & SlotComponent<...>): () => void
+ */
+let reg = null          // options
+let regComponent = null // component（第二个参数）
+let registerArity = 0
 let clientApplyErr = null
 try {
   captured.exports.apply({
-    slots: { inject(n, fn) { return fn() }, register(spec) { reg = spec; return () => {} } },
+    slots: {
+      inject(n, fn) { return fn() },
+      register(...args) {
+        registerArity = args.length
+        reg = args[0]
+        regComponent = args[1]
+        return () => {}
+      },
+    },
     effect(fn) { return fn() },
   })
 } catch (e) { clientApplyErr = e }
 ok('client apply() 不抛异常', !clientApplyErr, clientApplyErr && clientApplyErr.message)
+ok('register 用两个参数调用（真实契约）', registerArity === 2, `实际 ${registerArity} 个参数`)
+ok('options 里不应含 component（它必须作为第二参数）',
+  reg && typeof reg.component === 'undefined',
+  reg && typeof reg.component !== 'undefined' ? 'component 被错误地放在 options 里' : '')
+ok('component 是函数', typeof regComponent === 'function', typeof regComponent)
 ok('注册到 conversation.input.dock', reg?.name === 'conversation.input.dock', reg?.name)
 ok('slot id 唯一可辨识', typeof reg?.id === 'string' && reg.id.includes('naruto-workbench'), reg?.id)
+ok('label 返回字符串', typeof reg?.label === 'function' && typeof reg.label() === 'string')
 
 let node = null, renderErr = null
-try { node = reg.component().render() } catch (e) { renderErr = e }
+try { node = regComponent().render() } catch (e) { renderErr = e }
 ok('面板 render() 不抛异常', !renderErr, renderErr && renderErr.message)
+ok('component 返回带 render/dispose 的对象', (() => {
+  try {
+    const c = regComponent()
+    return typeof c.render === 'function' && typeof c.dispose === 'function'
+  } catch { return false }
+})())
 
 if (node) {
   const nInput = node.querySelectorAll('input').length
