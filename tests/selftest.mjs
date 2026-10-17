@@ -61,10 +61,11 @@ ok('成长曲线：神器 3 档（70/140/280）',
 ok('成长曲线：通灵进阶有 sweetSpots（最优节点）',
   Array.isArray(PD.growth.spiritAdvance.sweetSpots) && PD.growth.spiritAdvance.sweetSpots.length >= 2)
 ok('成长曲线：勾玉体现实测数据', PD.growth.jade.bodyTotals.length === 2)
-ok('战力标准表覆盖 50~160 级（含 50 与 155/160 段）',
-  PD.powerStandards.table.length >= 15 &&
+ok('战力标准表覆盖 50~170 级且严格单调递增',
+  PD.powerStandards.table.length === 21 &&
   PD.powerStandards.table[0].level === 50 &&
-  PD.powerStandards.table[PD.powerStandards.table.length - 1].level === 160,
+  PD.powerStandards.table[PD.powerStandards.table.length - 1].level === 170 &&
+  PD.powerStandards.table.every((r, i) => i === 0 || r.power > PD.powerStandards.table[i - 1].power),
   `${PD.powerStandards.table.length} 行, 首行 ${PD.powerStandards.table[0].level} 级, 末行 ${PD.powerStandards.table[PD.powerStandards.table.length - 1].level} 级`)
 ok('战力标准表标为低置信且带诚实声明',
   PD.powerStandards.confidence === 'low' && typeof PD.powerStandards.independentSourceWarning === 'string',
@@ -86,9 +87,11 @@ ok('铜币收益必须带可核对的锚点（官方 2016 招财 ≈23 万/天�
 
 section('2b. 交叉验证后的置信度分级（2026-10-18 复核）')
 ok('属性系数有逐项置信度 perAttr', !!PD.attrWeights.perAttr && Object.keys(PD.attrWeights.perAttr).length === 7)
-ok('属性攻击/防御标为 unverified（零独立来源）',
-  PD.attrWeights.perAttr.elemAtk.confidence === 'unverified' &&
-  PD.attrWeights.perAttr.elemDef.confidence === 'unverified')
+ok('属性攻击/防御已升级为 medium（2026-10-18 首次找到明确来源）',
+  PD.attrWeights.perAttr.elemAtk.confidence === 'medium' &&
+  PD.attrWeights.perAttr.elemDef.confidence === 'medium' &&
+  PD.attrWeights.perAttr.elemAtk.value === 6 &&
+  PD.attrWeights.perAttr.elemDef.value === 10)
 ok('生命/攻击/暴击标为 high',
   ['hp', 'atk', 'crit'].every(k => PD.attrWeights.perAttr[k].confidence === 'high'))
 ok('防御标为 medium（唯一有游戏内闭环验证，但仅 2 源）',
@@ -208,33 +211,49 @@ for (const s of ['growth', 'standards', 'income', 'priority', 'inflation', 'weig
   ok(`reference[${s}] 返回数据`, r.data && Object.keys(r.data).length > 0)
 }
 const refAll = await tools.naruto_reference.execute({ section: 'all' })
-ok('reference[all] 含全部 9 区块', Object.keys(refAll.data).length === 9, Object.keys(refAll.data).join(','))
+ok('reference[all] 含全部 10 区块', Object.keys(refAll.data).length === 10, Object.keys(refAll.data).join(','))
 
-ok('★ 跨游戏污染名单存在且点名 huoyin.qq.com',
-  Array.isArray(PD.crossGameTraps) &&
-  PD.crossGameTraps.some(t => String(t.domain).includes('huoyin.qq.com')) &&
-  PD.crossGameTraps.some(t => String(t.game).includes('OL')),
-  (PD.crossGameTraps || []).length + ' 条')
-
-ok('★ OL 的减法框架被明确标为「不可用于手游」',
-  PD.elemCrossCheck.subtractFramework.usableForMobile === false &&
-  /Online|OL/.test(String(PD.elemCrossCheck.subtractFramework.belongsTo)),
+ok('★ 减法框架已更正为「手游可用」（上一版曾误判为 OL 专属）',
+  PD.elemCrossCheck.subtractFramework.usableForMobile === true &&
+  /手游/.test(String(PD.elemCrossCheck.subtractFramework.belongsTo)) &&
+  typeof PD.elemCrossCheck.subtractFramework.correction === 'string',
   PD.elemCrossCheck.subtractFramework.belongsTo)
 
-ok('★ ÷20 只算 1 个来源（不得伪称 OL 也印证）',
-  PD.elemCrossCheck.twentyPerPercent.confidence === 'medium' &&
-  PD.elemCrossCheck.twentyPerPercent.sourceCount === 1 &&
-  PD.elemCrossCheck.twentyPerPercent.lines.length === 1 &&
+ok('★ ÷20 现有 2 个来源、升为 high（恒心 + 实战实测视频）',
+  PD.elemCrossCheck.twentyPerPercent.confidence === 'high' &&
+  PD.elemCrossCheck.twentyPerPercent.sourceCount === 2 &&
+  PD.elemCrossCheck.twentyPerPercent.lines.length === 2 &&
   typeof PD.elemCrossCheck.twentyPerPercent.rejectedSecondSource === 'string',
   `confidence=${PD.elemCrossCheck.twentyPerPercent.confidence}, lines=${PD.elemCrossCheck.twentyPerPercent.lines.length}`)
 
-ok('★ 属性防御 10 / 属性攻击 6 仍为未确证（没有被用户资料说服）',
-  PD.elemCrossCheck.elemDefPerPoint.confidence === 'unverified' &&
-  PD.elemCrossCheck.elemAtkPerPoint.confidence === 'unverified')
+ok('★ 属性防御 10 / 属性攻击 6 已升为 medium，且值未变',
+  PD.elemCrossCheck.elemDefPerPoint.confidence === 'medium' &&
+  PD.elemCrossCheck.elemAtkPerPoint.confidence === 'medium' &&
+  PD.elemCrossCheck.elemDefPerPoint.value === 10 &&
+  PD.elemCrossCheck.elemAtkPerPoint.value === 6)
 
-ok('★ 通灵消耗表：存了但标低置信，且带内部矛盾 flag',
-  PD.growth.spiritCostTable.rows.length === 17 &&
-  PD.growth.spiritCostTable.confidence === 'low' &&
+ok('★ 完整伤害公式已固化（最高系 → 减属防 → ÷20）',
+  Array.isArray(PD.elemMechanics.damageFormula.steps) &&
+  PD.elemMechanics.damageFormula.steps.length === 5 &&
+  /最高/.test(PD.elemMechanics.damageFormula.oneLiner) &&
+  /属防/.test(PD.elemMechanics.damageFormula.oneLiner),
+  PD.elemMechanics.damageFormula.oneLiner)
+
+ok('★ 伤害公式有闭环验证数据（4 个校验 + 1 个结构校验）',
+  PD.elemMechanics.damageFormulaVerification.checks.length === 4 &&
+  typeof PD.elemMechanics.damageFormulaVerification.structuralCheck === 'string')
+
+ok('★★ 闭环验算能复现（2450-1260)/20≈59.5% 与 2279×0.595≈1356万',
+  (() => {
+    const pct = (2450 - 1260) / 20
+    const smallDmg = 2279 * (pct / 100)
+    return Math.abs(pct - 59.5) < 0.01 && Math.abs(smallDmg - 1356) < 2
+  })())
+
+ok('★ 通灵消耗表：三源比对后升为 medium，但保留分歧与异常 flag',
+  PD.growth.spiritCostTable.rows.length === 18 &&
+  PD.growth.spiritCostTable.confidence === 'medium' &&
+  PD.growth.spiritCostTable.discrepancies.length >= 6 &&
   PD.growth.spiritCostTable.rows.some(r => r.flag),
   PD.growth.spiritCostTable.rows.filter(r => r.flag).length + ' 行带 flag')
 
@@ -244,10 +263,24 @@ ok('★ 通灵消耗表的分组边界与小米等级上限一致（差 1 级是
   PD.growth.spiritCostTable.rows.find(r => r.name === '蛤蟆龙').maxLevel === 300 &&
   PD.growth.spiritCostTable.rows.find(r => r.name === '蜘蛛').maxLevel === 600)
 
-ok('★ 不可核对来源必须留痕（verified:false + 说明 HTTP200 不代表内容存在）',
-  PD.sources.spirit_cost_table.verified === false &&
+ok('★ 页面核不了这件事必须留痕（verified=partial + 说明 72914 字节空壳页）',
+  PD.sources.spirit_cost_table.verified === 'partial' &&
   /72914/.test(PD.sources.spirit_cost_table.note),
   'spirit_cost_table.verified=' + PD.sources.spirit_cost_table.verified)
+
+ok('★ 「达标线」与「团本通关门槛」已分开记（150 级不再错标 3000 万）',
+  PD.powerStandards.table.find(r => r.level === 150).power === 14000000 &&
+  PD.powerStandards.raidRequirement[160].min === 30000000 &&
+  /门槛/.test(PD.powerStandards.raidRequirement.distinction),
+  '150级=' + PD.powerStandards.table.find(r => r.level === 150).power)
+
+ok('★ 虚战两套矛盾口径都保留（不擅自判定谁对）',
+  PD.communityConflicts.some(c => c.topic.includes('虚战') && c.definitionA && c.definitionB),
+  (PD.communityConflicts || []).length + ' 条冲突')
+
+ok('★ 五星S全属性加成 20.3/16.2/12.2 已记录且标低置信',
+  PD.collectionMilestones.fiveStarS.fullAttrBonus['五星'] === 0.203 &&
+  PD.collectionMilestones.fiveStarS.confidence === 'low')
 
 section('6. 鲁棒性（畸形输入）')
 for (const bad of [null, undefined, {}, { panel: null }, { panel: { boards: null } }, { panel: { boards: { x: null } } }]) {
