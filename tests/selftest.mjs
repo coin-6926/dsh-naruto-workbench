@@ -75,9 +75,14 @@ ok('资源日收益：金币零氪已修正为 330~500（不再是过时的 260�
 ok('资源日收益：体力已修正（约 460，不再是错误的 1200）',
   PD.resourceIncome.stamina && PD.resourceIncome.stamina.withRamen === 460,
   String(PD.resourceIncome.stamina?.withRamen))
-ok('资源日收益：铜币标为未确证（不再假称 30~36 万可信）',
-  PD.resourceIncome.copper.confidence === 'unverified',
+ok('资源日收益：铜币仍不可信（必须低置信，不能升级为 medium/high）',
+  ['unverified', 'low'].includes(PD.resourceIncome.copper.confidence),
   PD.resourceIncome.copper.confidence)
+ok('铜币收益必须带可核对的锚点（官方 2016 招财 ≈23 万/天）',
+  Array.isArray(PD.resourceIncome.copper.anchors) &&
+  PD.resourceIncome.copper.anchors.some(a => a.amount === 230000) &&
+  !!PD.sources.hyrz_daily_2016,
+  (PD.resourceIncome.copper.anchors || []).length + ' 个锚点')
 
 section('2b. 交叉验证后的置信度分级（2026-10-18 复核）')
 ok('属性系数有逐项置信度 perAttr', !!PD.attrWeights.perAttr && Object.keys(PD.attrWeights.perAttr).length === 7)
