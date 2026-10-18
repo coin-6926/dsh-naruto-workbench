@@ -620,6 +620,35 @@ ok('★ 官方金句逐字留存（可核对）',
   ok('本轮新增数据都带 sourceIds 或 confidence', unlabeled.length === 0, unlabeled.join(','))
 }
 
+/* ═══════════════════ 10. 官方公告审计（负结果也要锁住） ═══════════════════ */
+section('10. 官方公告定向检索结果')
+{
+  const a = PD.officialAudit
+  ok('审计记录存在（3 个悬案）', a && a.cases.length === 3)
+  ok('★ 属性攻防 6/10：已确认官方从未公布（负结果已固化）',
+    a.cases[0].verdict.includes('没有找到') && a.cases[0].implied === undefined
+      ? a.cases[0].verdict.includes('没有找到')
+      : a.cases[0].verdict.includes('没有找到'))
+  ok('★ 2016-08-30：找到接近原文的表述，且含「实际战斗效果没有任何变化」',
+    a.cases[1].verdict.includes('找到') &&
+    a.cases[1].quote.includes('实际战斗效果没有任何变化') &&
+    a.cases[1].semanticClarification.includes('只影响战力面板'))
+  ok('★ 2016-08-30 公告未给具体系数（抗暴10/暴击6 仍是反推）',
+    a.cases[1].gap.includes('没有公布具体系数'))
+  ok('★ 勾玉/通灵/饰品上线公告：记为未找到',
+    a.cases[2].verdict.includes('没找到'))
+  ok('顺带发现 3 条（洗练换算 / 竞技场不计首饰暴击 / 暴击倍率冲突）',
+    a.incidental.length === 3 &&
+    a.incidental.every((x) => x.confidence === 'low' || x.confidence === 'unverified'))
+  ok('洗练百分比的量纲警告已写明', a.incidental[0].unitCaveat.includes('不同量纲'))
+
+  // 暴击倍率冲突必须体现为未定
+  ok('暴击伤害倍率冲突未被擅自裁决',
+    PD.cautions.some((c) => c.includes('1.5 倍') && c.includes('1.2 倍')))
+  ok('官方检索结论已写进 cautions（避免下游重复劳动）',
+    PD.cautions.some((c) => c.includes('官方公告已定向检索过')))
+}
+
 /* ═════════════════════════════ 汇总 ═════════════════════════════ */
 
 console.log(`\n${'═'.repeat(62)}`)

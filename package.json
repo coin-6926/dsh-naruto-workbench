@@ -55,6 +55,8 @@
     "test:browser": "node tests/browser.e2e.mjs",
     "test:all": "node tests/selftest.mjs && node tests/portable.test.mjs && node tests/browser.e2e.mjs",
     "cli": "node dist/naruto-cli.cjs",
+    "official:get": "node tools/fetch-official.mjs",
+    "official:search": "node tools/search-official.mjs",
     "prepack": "node tools/build-portable.mjs"
   },
   "dsh": {
