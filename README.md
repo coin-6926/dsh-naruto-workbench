@@ -22,6 +22,77 @@
 
 ---
 
+## 🌐 五种运行方式（不限 DSH）
+
+同一份数据（`lib/power-data.js`）+ 同一份核心（`src/portable/core.src.js`），
+打包成 5 个平台目标。**计算逻辑只有一处**，不存在多份实现漂移
+（`tests/portable.test.mjs` 里有「portable core vs client vs host」三端逐一比对守着）。
+
+| 方式 | 命令 / 操作 | 需要什么 | 适合谁 |
+|---|---|---|---|
+| **① 单文件 HTML** | 双击 `dist/naruto-workbench.html` | 任意现代浏览器，**离线** | 绝大多数人（手机/电脑/平板都行） |
+| **② Node CLI** | `node dist/naruto-cli.cjs --panel 面板.json` | Node ≥ 10 | 习惯终端 / 想接脚本 |
+| **③ UMD 库** | `require('./dist/naruto-power.js')` 或浏览器 `<script>` | 任意 JS 运行时 | 想自己写集成 |
+| **④ DSH 插件** | 装进 DeepSeek Harness | DSH | 想在对话里直接问 agent |
+| **⑤ 供 AI 的提示词** | 页面点「复制给 AI 的分析提示词」 | 任意 AI 对话 | ChatGPT / Claude / Gemini / DeepSeek / Kimi 都能用 |
+
+### ① 单文件 HTML（推荐）
+
+直接双击 `dist/naruto-workbench.html`，或拖进浏览器。**不联网、不上传、不需要服务器。**
+
+- 填 16 板块 × 7 属性 → 即时出总战力、占比、短板、虚战诊断、目标倒推
+- 自动存本地（localStorage），换设备用「导出 JSON」
+- 「复制给 AI 的分析提示词」→ 粘到**任何** AI 对话里继续分析
+
+重新构建：`npm run build:portable`
+
+### ② Node CLI
+
+```bash
+node dist/naruto-cli.cjs --sample                 # 用内置示例跑一遍
+node dist/naruto-cli.cjs --panel mypanel.json     # 读面板
+node dist/naruto-cli.cjs --panel p.json --json    # 机器可读输出
+node dist/naruto-cli.cjs --panel p.json --prompt  # 输出给 AI 的提示词
+node dist/naruto-cli.cjs --sources                # 列出全部数据来源
+cat p.json | node dist/naruto-cli.cjs             # 也支持 stdin
+```
+
+退出码：`0` 成功 / `1` 参数或输入错误 / `2` 计算异常。
+
+### ③ UMD 库
+
+```js
+// CommonJS（注意：本包是 "type": "module"，所以请用 dist/ 目录下的文件，
+// 或直接 require('./dist/naruto-power.cjs')）
+const core = require('./dist/naruto-power.js')
+const r = core.compute({ level: 145, boards: { equipment: { hp: 500000, atk: 100000 } } })
+console.log(r.totalPower, core.fmtPower(r.totalPower))
+```
+
+```html
+<!-- 浏览器：直接用 <script> -->
+<script src="naruto-power.js"></script>
+<script>
+  const r = NarutoPower.compute({ boards: { equipment: { hp: 500000 } } })
+  console.log(r.totalPower)
+</script>
+```
+
+TypeScript 声明在 `dist/naruto-power.d.ts`。
+
+### 兼容性说明（已实测）
+
+| 项 | 范围 |
+|---|---|
+| HTML | Chrome / Edge / Firefox / Safari / 各种套壳浏览器；`file://` 直接打开可运行 |
+| JS 语法 | 上限 ES2015（不用 `?.` `??` `structuredClone` 等新特性） |
+| CSS | 系统字体栈（不请求任何外部字体）、`prefers-color-scheme` 自适应、打印样式 |
+| CLI | Node ≥ 10；`dist/package.json` 锁定 CommonJS 避免被 ESM 误判 |
+| 网络 | 全部产物**零网络请求**（有自动化断言禁止 `fetch`/`XMLHttpRequest`/外链） |
+| 降级 | localStorage 被禁 → 提示改用导出；`navigator.clipboard` 不可用 → `execCommand` 兜底；无法下载 → 复制到剪贴板 |
+
+真实浏览器端到端测试：`npm run test:browser`（Chrome + Edge 双内核比对，找不到浏览器则跳过）。
+
 ## 安装
 
 ### 方式一：DSH 插件 CLI（推荐）
@@ -146,7 +217,7 @@ cd dsh-naruto-workbench
 ## 开发
 
 ```bash
-node tests/selftest.mjs     # 134 项自测（host 工具 + client 渲染 + 跨端一致性），无需浏览器
+npm run test:all            # 三套：插件 134 + 可移植 131 + 浏览器 11 = 276 项
 ```
 
 ### 踩过的坑（都做成了永久测试）
@@ -186,6 +257,9 @@ client 不能 import host，所以战力算法写了两遍。两份漂移 = 用�
 ```
 lib/index.js         host 半身：3 个 agent 工具 + 面板持久化
 lib/client.js        client 半身：工作台面板（纯 DOM，无 React 依赖）
+src/portable/        ★ 可移植核心与 UI 模板（单一真相，供 build 打包到 dist/）
+tools/build-portable.mjs  ★ 把同一份数据+核心打成 4 个平台产物
+dist/                ★ 构建产物（单文件 HTML / UMD / CLI / d.ts）
 lib/power-data.js    ★ 内置数值表（唯一需要改的文件）
 cordis.patch.yml     bundle 装配声明
 docs/DATA-SOURCES.md ★ 数据来源与置信度审计（每条数值的出处）

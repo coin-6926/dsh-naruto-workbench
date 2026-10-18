@@ -12,6 +12,8 @@
   },
   "files": [
     "lib",
+    "dist",
+    "src",
     "cordis.patch.yml",
     "docs"
   ],
@@ -38,7 +40,13 @@
   },
   "scripts": {
     "test": "node tests/selftest.mjs",
-    "selftest": "node tests/selftest.mjs"
+    "selftest": "node tests/selftest.mjs",
+    "build:portable": "node tools/build-portable.mjs",
+    "test:portable": "node tests/portable.test.mjs",
+    "test:browser": "node tests/browser.e2e.mjs",
+    "test:all": "node tests/selftest.mjs && node tests/portable.test.mjs && node tests/browser.e2e.mjs",
+    "cli": "node dist/naruto-cli.cjs",
+    "prepack": "node tools/build-portable.mjs"
   },
   "dsh": {
     "bundle": {

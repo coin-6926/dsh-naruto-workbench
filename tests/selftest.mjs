@@ -211,7 +211,7 @@ for (const s of ['growth', 'standards', 'income', 'priority', 'inflation', 'weig
   ok(`reference[${s}] 返回数据`, r.data && Object.keys(r.data).length > 0)
 }
 const refAll = await tools.naruto_reference.execute({ section: 'all' })
-ok('reference[all] 含全部 10 区块', Object.keys(refAll.data).length === 10, Object.keys(refAll.data).join(','))
+ok('reference[all] 含全部 11 区块', Object.keys(refAll.data).length === 11, Object.keys(refAll.data).join(','))
 
 ok('★ 减法框架已更正为「手游可用」（上一版曾误判为 OL 专属）',
   PD.elemCrossCheck.subtractFramework.usableForMobile === true &&

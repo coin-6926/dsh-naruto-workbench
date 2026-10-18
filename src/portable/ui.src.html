@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="火影忍者手游 战力工作台 —— 单文件离线版，填面板即出诊断与规划">
+<title>火影忍者手游 · 战力工作台</title>
+<style>
+/* ── 用系统字体栈，不请求任何外部字体，保证离线与弱网可用 ── */
+:root{
+  --bg:#0f1419; --bg2:#161d26; --bg3:#1e2733; --line:#2b3646;
+  --fg:#e6edf5; --fg2:#9fb0c4; --fg3:#6b7d92;
+  --accent:#4a9eff; --accent2:#2f7fe0;
+  --ok:#3fb950; --warn:#d29922; --bad:#f85149;
+  --radius:10px;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#f5f7fa; --bg2:#ffffff; --bg3:#eef2f7; --line:#d6dee8;
+    --fg:#1a2430; --fg2:#526277; --fg3:#7b8ca3;
+    --accent:#0b62d6; --accent2:#0a54b8;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--fg);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  -webkit-text-size-adjust:100%;
+  padding:16px;
+}
+.wrap{max-width:1280px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:baseline;justify-content:space-between;margin-bottom:16px}
+h1{font-size:19px;margin:0;font-weight:650;letter-spacing:.3px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--fg2)}
+.badge{background:var(--bg3);border:1px solid var(--line);border-radius:999px;padding:2px 9px;white-space:nowrap}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.card h2{font-size:14px;margin:0 0 10px;font-weight:600;color:var(--fg);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h2 .hint{font-size:12px;font-weight:400;color:var(--fg3)}
+.meta{display:flex;flex-wrap:wrap;gap:12px}
+.meta label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--fg2);min-width:120px;flex:1 1 120px}
+input[type=text],input[type=number]{
+  background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:7px;
+  padding:7px 9px;font:inherit;font-size:13px;width:100%;min-width:0;
+  -moz-appearance:textfield;
+}
+input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[data-invalid="1"]{border-color:var(--bad)}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:right;white-space:nowrap}
+th{font-weight:600;color:var(--fg2);font-size:12px;position:sticky;top:0;background:var(--bg2);z-index:1}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--bg2);z-index:2}
+th:first-child{z-index:3}
+tbody tr:hover td{background:var(--bg3)}
+td input{padding:4px 5px;font-size:12px;text-align:right;border-radius:5px}
+td.pw{color:var(--fg2);font-variant-numeric:tabular-nums}
+td.sh{color:var(--fg2);font-variant-numeric:tabular-nums}
+tfoot td{font-weight:650;border-top:2px solid var(--line);border-bottom:none;padding-top:8px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+button{
+  background:var(--bg3);color:var(--fg);border:1px solid var(--line);border-radius:8px;
+  padding:7px 13px;font:inherit;font-size:13px;cursor:pointer;-webkit-appearance:none;
+  min-height:34px;
+}
+button:hover{border-color:var(--accent)}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:var(--accent2)}
+.kpis{display:flex;flex-wrap:wrap;gap:10px}
+.kpi{flex:1 1 150px;background:var(--bg3);border-radius:8px;padding:10px 12px}
+.kpi .k{font-size:12px;color:var(--fg2)}
+.kpi .v{font-size:19px;font-weight:650;margin-top:2px;font-variant-numeric:tabular-nums}
+.bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:5px}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:4px}
+ul.plain{margin:6px 0 0;padding-left:18px}
+ul.plain li{margin:3px 0}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--fg2);white-space:nowrap}
+.tag.ok{color:var(--ok);border-color:var(--ok)}
+.tag.warn{color:var(--warn);border-color:var(--warn)}
+.tag.bad{color:var(--bad);border-color:var(--bad)}
+.note{font-size:12px;color:var(--fg3);margin-top:8px;line-height:1.6}
+.note strong{color:var(--fg2)}
+details summary{cursor:pointer;font-size:13px;color:var(--fg2);padding:4px 0}
+details[open] summary{margin-bottom:6px}
+pre#promptOut{
+  background:var(--bg3);border:1px solid var(--line);border-radius:8px;padding:10px;
+  font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  max-height:320px;overflow:auto;white-space:pre-wrap;word-break:break-word;margin:8px 0 0;
+}
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+  background:var(--accent);color:#fff;padding:9px 18px;border-radius:999px;font-size:13px;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99;max-width:90vw;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.warnlist{color:var(--warn);font-size:12px}
+.errlist{color:var(--bad);font-size:12px}
+@media (max-width:560px){
+  body{padding:10px}
+  h1{font-size:16px}
+  .kpi{flex:1 1 100%}
+  th,td{padding:4px 4px}
+  table{font-size:12px}
+}
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  .btns,details:not([open]) ,#toast{display:none !important}
+  .card{border:1px solid #ccc;break-inside:avoid}
+  .tablewrap{overflow:visible}
+  table{min-width:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>火影忍者手游 · 战力工作台</h1>
+    <div class="badges">
+      <span class="badge">单文件离线版</span>
+      <span class="badge">核心 v__CORE_VERSION__</span>
+      <span class="badge">数据 __DATA_VERSION__</span>
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>① 基础信息 <span class="hint">收集加成按百分比填，只作用于生命/攻击/防御</span></h2>
+    <div class="meta">
+      <label>等级
+        <input type="number" id="level" inputmode="numeric" placeholder="如 145" min="1" max="300">
+      </label>
+      <label>目标战力
+        <input type="number" id="targetPower" inputmode="numeric" placeholder="如 12000000">
+      </label>
+      <label>收集加成·生命 %
+        <input type="number" id="cb_hp" inputmode="decimal" placeholder="如 60" step="0.1">
+      </label>
+      <label>收集加成·攻击 %
+        <input type="number" id="cb_atk" inputmode="decimal" placeholder="如 60" step="0.1">
+      </label>
+      <label>收集加成·防御 %
+        <input type="number" id="cb_def" inputmode="decimal" placeholder="如 60" step="0.1">
+      </label>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② 16 板块 × 7 属性 <span class="hint">留空 = 未知（不会被当成 0）</span></h2>
+    <div class="tablewrap">
+      <table id="grid">
+        <thead></thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+    <div class="btns" style="margin-top:12px">
+      <button type="button" id="btnSample">载入示例</button>
+      <button type="button" id="btnClear">清空</button>
+      <button type="button" id="btnExport">导出 JSON</button>
+      <button type="button" id="btnImport">导入 JSON</button>
+      <button type="button" class="primary" id="btnPrompt">复制给 AI 的分析提示词</button>
+      <button type="button" id="btnPrint">打印</button>
+    </div>
+    <div class="note">
+      <strong>数据只存在你这台设备的浏览器里</strong>（localStorage），本页面不联网、不上传。
+      换设备请用「导出 JSON」搬过去。
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>③ 诊断结果</h2>
+    <div class="kpis" id="kpis"></div>
+    <div id="diagBody" style="margin-top:14px"></div>
+    <div id="warnBox" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <h2>④ 给 AI 的提示词 <span class="hint">复制后粘到任何 AI 对话里</span></h2>
+    <details id="promptBox">
+      <summary>展开 / 收起提示词</summary>
+      <pre id="promptOut"></pre>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>⑤ 数据来源与免责</h2>
+    <div id="srcInfo" class="note"></div>
+    <details>
+      <summary>已标注来源的数据（点开）</summary>
+      <div id="srcList" class="note"></div>
+    </details>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="filePicker" accept=".json,application/json" style="display:none">
+
+<script>
+__BUNDLE__
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+ * UI 层：只负责 DOM，不含任何计算。所有计算走 NarutoPower 核心。
+ * 兼容策略：ES2015 上限；无模块；无 fetch；localStorage 全程 try/catch。
+ * ══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict'
+
+  var CORE = window.NarutoPower
+  if (!CORE) {
+    document.body.innerHTML =
+      '<div style="padding:24px;font:14px sans-serif;color:#f85149">' +
+      '核心脚本加载失败（window.NarutoPower 不存在）。这份 HTML 需要内嵌核心，请用 tools/build-portable.mjs 重新构建。' +
+      '</div>'
+    return
+  }
+
+  var STORAGE_KEY = 'naruto-workbench/panel/v2'
+  var $ = function (id) { return document.getElementById(id) }
+  var raf = window.requestAnimationFrame || function (f) { return setTimeout(f, 16) }
+
+  // ── 安全存储（Safari 无痕 / file:// 某些浏览器会直接抛错）
+  var storage = (function () {
+    var ok = false
+    try {
+      var k = '__nw_test__'
+      window.localStorage.setItem(k, '1')
+      window.localStorage.removeItem(k)
+      ok = true
+    } catch (e) { ok = false }
+    return {
+      available: ok,
+      read: function (key) {
+        if (!ok) return null
+        try { return window.localStorage.getItem(key) } catch (e) { return null }
+      },
+      write: function (key, val) {
+        if (!ok) return false
+        try { window.localStorage.setItem(key, val); return true } catch (e) { return false }
+      },
+      clear: function (key) {
+        if (!ok) return
+        try { window.localStorage.removeItem(key) } catch (e) {}
+      }
+    }
+  })()
+
+  function toast(msg) {
+    var t = $('toast')
+    if (!t) return
+    t.textContent = msg
+    t.className = 'show'
+    clearTimeout(toast._tm)
+    toast._tm = setTimeout(function () { t.className = '' }, 2200)
+  }
+
+  // ── 剪贴板：多级降级，兼容老浏览器与非 https
+  function copyText(text, done) {
+    function fallback() {
+      try {
+        var ta = document.createElement('textarea')
+        ta.value = text
+        ta.setAttribute('readonly', '')
+        ta.style.position = 'fixed'
+        ta.style.top = '-1000px'
+        ta.style.opacity = '0'
+        document.body.appendChild(ta)
+        ta.select()
+        ta.setSelectionRange(0, ta.value.length)
+        var ok = false
+        try { ok = document.execCommand('copy') } catch (e) { ok = false }
+        document.body.removeChild(ta)
+        done(ok)
+      } catch (e) { done(false) }
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        navigator.clipboard.writeText(text).then(function () { done(true) }, fallback)
+        return
+      } catch (e) { /* 落到 fallback */ }
+    }
+    fallback()
+  }
+
+  // ── 建立表格骨架（一次）
+  function buildGrid() {
+    var thead = $('grid').tHead
+    var tbody = $('grid').tBodies[0]
+    var tfoot = $('grid').tFoot
+
+    var hr = document.createElement('tr')
+    var th0 = document.createElement('th')
+    th0.textContent = '板块'
+    hr.appendChild(th0)
+    for (var i = 0; i < CORE.ATTRS.length; i++) {
+      var th = document.createElement('th')
+      th.textContent = CORE.ATTRS[i].name
+      hr.appendChild(th)
+    }
+    ;['战力', '占比'].forEach(function (label) {
+      var th = document.createElement('th')
+      th.textContent = label
+      hr.appendChild(th)
+    })
+    thead.appendChild(hr)
+
+    for (var b = 0; b < CORE.BOARDS.length; b++) {
+      var board = CORE.BOARDS[b]
+      var tr = document.createElement('tr')
+      var td0 = document.createElement('td')
+      td0.textContent = board.name
+      if (board.note) td0.title = board.note
+      tr.appendChild(td0)
+      for (var a = 0; a < CORE.ATTRS.length; a++) {
+        var td = document.createElement('td')
+        var inp = document.createElement('input')
+        inp.type = 'number'
+        inp.step = 'any'
+        inp.min = '0'
+        inp.setAttribute('inputmode', 'numeric')
+        inp.setAttribute('data-board', board.id)
+        inp.setAttribute('data-attr', CORE.ATTRS[a].id)
+        inp.setAttribute('aria-label', board.name + ' ' + CORE.ATTRS[a].name)
+        inp.autocomplete = 'off'
+        td.appendChild(inp)
+        tr.appendChild(td)
+      }
+      var tdP = document.createElement('td')
+      tdP.className = 'pw'
+      tdP.setAttribute('data-power-for', board.id)
+      tr.appendChild(tdP)
+      var tdS = document.createElement('td')
+      tdS.className = 'sh'
+      tdS.setAttribute('data-share-for', board.id)
+      tr.appendChild(tdS)
+      tbody.appendChild(tr)
+    }
+
+    var fr = document.createElement('tr')
+    var f0 = document.createElement('td')
+    f0.textContent = '合计'
+    fr.appendChild(f0)
+    for (var x = 0; x < CORE.ATTRS.length; x++) fr.appendChild(document.createElement('td'))
+    var fP = document.createElement('td')
+    fP.id = 'totalPowerCell'
+    fP.className = 'pw'
+    fr.appendChild(fP)
+    var fS = document.createElement('td')
+    fS.textContent = '100%'
+    fr.appendChild(fS)
+    tfoot.appendChild(fr)
+  }
+
+  // ── 读表单 → 面板对象
+  function readForm() {
+    var inputs = document.querySelectorAll('#grid tbody input')
+    var boards = {}
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i]
+      var bid = el.getAttribute('data-board')
+      var aid = el.getAttribute('data-attr')
+      var raw = el.value
+      if (raw === '' || raw === null) continue
+      var n = CORE.sanitizeNumber(raw, null)
+      if (n === null) continue
+      if (!boards[bid]) boards[bid] = {}
+      boards[bid][aid] = n
+    }
+    return {
+      schemaVersion: CORE.SCHEMA_VERSION,
+      level: $('level').value === '' ? null : $('level').value,
+      targetPower: $('targetPower').value === '' ? null : $('targetPower').value,
+      collectionBonus: {
+        hp: $('cb_hp').value === '' ? undefined : $('cb_hp').value,
+        atk: $('cb_atk').value === '' ? undefined : $('cb_atk').value,
+        def: $('cb_def').value === '' ? undefined : $('cb_def').value
+      },
+      boards: boards
+    }
+  }
+
+  // ── 写面板 → 表单
+  function writeForm(panel) {
+    var v = CORE.validate(panel)
+    var p = v.panel
+    $('level').value = p.level === null ? '' : p.level
+    $('targetPower').value = p.targetPower === null ? '' : p.targetPower
+    $('cb_hp').value = p.collectionBonus.hp === undefined ? '' : +(p.collectionBonus.hp * 100).toFixed(4)
+    $('cb_atk').value = p.collectionBonus.atk === undefined ? '' : +(p.collectionBonus.atk * 100).toFixed(4)
+    $('cb_def').value = p.collectionBonus.def === undefined ? '' : +(p.collectionBonus.def * 100).toFixed(4)
+    var inputs = document.querySelectorAll('#grid tbody input')
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i]
+      var bid = el.getAttribute('data-board')
+      var aid = el.getAttribute('data-attr')
+      var b = p.boards[bid]
+      el.value = b && b[aid] !== undefined ? b[aid] : ''
+    }
+    return v
+  }
+
+  // ── 渲染诊断
+  function render() {
+    var raw = readForm()
+    var comp = CORE.compute(raw)
+    var infl = CORE.inflation(comp)
+    var plan = CORE.planTarget({
+      currentPower: comp.totalPower,
+      targetPower: comp.targetPower,
+      level: comp.level,
+      computed: comp
+    })
+
+    // 逐板块回填
+    for (var i = 0; i < comp.boards.length; i++) {
+      var row = comp.boards[i]
+      var pCell = document.querySelector('[data-power-for="' + row.boardId + '"]')
+      var sCell = document.querySelector('[data-share-for="' + row.boardId + '"]')
+      if (pCell) pCell.textContent = row.filled ? CORE.fmtPower(row.power) : '—'
+      if (sCell) sCell.textContent = row.share === null ? '—' : CORE.fmtPct(row.share)
+    }
+    var tp = $('totalPowerCell')
+    if (tp) tp.textContent = comp.filledCount ? CORE.fmtPower(comp.totalPower) : '—'
+
+    // KPI
+    var kpis = []
+    kpis.push({ k: '总战力（已填部分）', v: comp.filledCount ? CORE.fmtPower(comp.totalPower) : '—' })
+    kpis.push({ k: '已填板块', v: comp.filledCount + ' / ' + comp.totalBoards })
+    if (plan.standard) {
+      kpis.push({
+        k: plan.standard.level + ' 级社区达标线',
+        v: CORE.fmtPower(plan.standard.power),
+        tag: plan.vsStandardLabel,
+        tagCls: plan.vsStandardLabel === '达标' ? 'ok' : plan.vsStandardLabel === '略低' ? 'warn' : 'bad'
+      })
+    }
+    if (plan.gap !== null) kpis.push({ k: '距目标缺口', v: CORE.fmtPower(plan.gap) })
+
+    var kh = ''
+    for (var k = 0; k < kpis.length; k++) {
+      var it = kpis[k]
+      kh += '<div class="kpi"><div class="k">' + esc(it.k) + '</div><div class="v">' + esc(it.v) +
+        (it.tag ? ' <span class="tag ' + (it.tagCls || '') + '">' + esc(it.tag) + '</span>' : '') + '</div></div>'
+    }
+    $('kpis').innerHTML = kh
+
+    // 主体
+    var html = ''
+
+    // 虚战
+    var inflCls = infl.inflationScore === null ? '' : infl.inflationScore >= 60 ? 'bad' : infl.inflationScore >= 35 ? 'warn' : 'ok'
+    html += '<div><strong>虚战诊断：</strong><span class="tag ' + inflCls + '">' + esc(infl.level) + '</span>'
+    if (infl.inflationScore !== null) html += ' <span style="color:var(--fg3);font-size:12px">失衡度 ' + infl.inflationScore + '/100</span>'
+    html += '<ul class="plain">'
+    for (var r = 0; r < infl.reasons.length; r++) html += '<li>' + esc(infl.reasons[r]) + '</li>'
+    for (var s = 0; s < infl.suggestions.length; s++) html += '<li style="color:var(--fg2)">' + esc(infl.suggestions[s]) + '</li>'
+    html += '</ul></div>'
+
+    // 占比条形
+    var filled = comp.boards.filter(function (b) { return b.filled && b.share !== null })
+    if (filled.length) {
+      filled.sort(function (a, b) { return b.share - a.share })
+      html += '<div style="margin-top:16px"><strong>板块占比（按高到低）</strong><div style="margin-top:8px">'
+      for (var f = 0; f < filled.length; f++) {
+        var b2 = filled[f]
+        html += '<div style="margin-bottom:7px">' +
+          '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--fg2)">' +
+          '<span>' + esc(b2.boardName) + '</span>' +
+          '<span>' + CORE.fmtPower(b2.power) + ' · ' + CORE.fmtPct(b2.share) + '</span></div>' +
+          '<div class="bar"><i style="width:' + Math.max(1, Math.min(100, b2.share * 100)).toFixed(1) + '%"></i></div></div>'
+      }
+      html += '</div></div>'
+    }
+
+    // 倒推
+    if (plan.directions.length) {
+      html += '<div style="margin-top:16px"><strong>相对最薄弱（优先补）</strong><ul class="plain">'
+      for (var d = 0; d < plan.directions.length; d++) {
+        var dir = plan.directions[d]
+        html += '<li>' + esc(dir.boardName) + ' —— 占比 ' + CORE.fmtPct(dir.share) + '，当前 ' + CORE.fmtPower(dir.power) + '</li>'
+      }
+      html += '</ul></div>'
+    }
+
+    // 天数
+    if (plan.daysNote) {
+      html += '<div style="margin-top:16px"><strong>天数估算</strong><div class="note">' +
+        (plan.daysNeeded === null ? '未估算：' : '约 <strong>' + plan.daysNeeded + ' 天</strong>（' + esc(plan.daysNote) + '）')
+        .replace('未估算：', '未估算：') + '</div></div>'
+    }
+
+    // caveats
+    if (plan.caveats.length) {
+      html += '<div style="margin-top:16px"><strong>必读注意</strong><ul class="plain">'
+      for (var c = 0; c < plan.caveats.length; c++) html += '<li style="color:var(--warn)">' + esc(plan.caveats[c]) + '</li>'
+      html += '</ul></div>'
+    }
+
+    // 未填提示
+    if (comp.unfilled.length) {
+      html += '<div class="note" style="margin-top:14px">未填板块（视为<strong>未知</strong>，不是 0）：' +
+        esc(comp.unfilled.join('、')) + '</div>'
+    }
+
+    $('diagBody').innerHTML = html
+
+    // 告警
+    var wb = ''
+    if (comp.errors && comp.errors.length) {
+      wb += '<div class="errlist">✗ ' + comp.errors.map(esc).join('<br>✗ ') + '</div>'
+    }
+    if (comp.warnings && comp.warnings.length) {
+      wb += '<div class="warnlist">⚠ ' + comp.warnings.slice(0, 8).map(esc).join('<br>⚠ ') + '</div>'
+    }
+    $('warnBox').innerHTML = wb
+
+    // 提示词
+    $('promptOut').textContent = CORE.buildAgentPrompt(raw)
+
+    return raw
+  }
+
+  function esc(s) {
+    return String(s === null || s === undefined ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+  }
+
+  // ── 节流重算
+  var pending = false
+  function scheduleRender(save) {
+    if (pending) return
+    pending = true
+    raf(function () {
+      pending = false
+      try {
+        var raw = render()
+        if (save !== false && storage.available) {
+          storage.write(STORAGE_KEY, JSON.stringify(CORE.exportPanel(raw)))
+        }
+      } catch (e) {
+        var wb = $('warnBox')
+        if (wb) wb.innerHTML = '<div class="errlist">计算异常：' + esc(String(e && e.message)) + '</div>'
+        if (window.console && console.error) console.error(e)
+      }
+    })
+  }
+
+  // ── 事件
+  function bind() {
+    var form = document.querySelector('#grid')
+    form.addEventListener('input', function (ev) {
+      var t = ev.target
+      if (!t || t.tagName !== 'INPUT') return
+      // 即时把非法值标记出来（不阻断输入）
+      var raw = t.value
+      if (raw !== '' && CORE.sanitizeNumber(raw, null) === null) {
+        t.setAttribute('data-invalid', '1')
+      } else {
+        t.removeAttribute('data-invalid')
+      }
+      scheduleRender()
+    })
+    form.addEventListener('change', function () { scheduleRender() })
+
+    ;['level', 'targetPower', 'cb_hp', 'cb_atk', 'cb_def'].forEach(function (id) {
+      var el = $(id)
+      if (!el) return
+      el.addEventListener('input', function () {
+        var raw = el.value
+        if (raw !== '' && CORE.sanitizeNumber(raw, null) === null) el.setAttribute('data-invalid', '1')
+        else el.removeAttribute('data-invalid')
+        scheduleRender()
+      })
+    })
+
+    $('btnClear').addEventListener('click', function () {
+      if (!window.confirm('确定清空所有输入？（不会删除浏览器里的历史存档以外的任何东西）')) return
+      writeForm({ boards: {} })
+      storage.clear(STORAGE_KEY)
+      scheduleRender(false)
+      toast('已清空')
+    })
+
+    $('btnSample').addEventListener('click', function () {
+      writeForm(SAMPLE)
+      scheduleRender()
+      toast('已载入示例面板（仅占位，非真实账号）')
+    })
+
+    $('btnExport').addEventListener('click', function () {
+      try {
+        var env = CORE.exportPanel(readForm())
+        var json = JSON.stringify(env, null, 2)
+        if (window.Blob && window.URL && window.URL.createObjectURL) {
+          var blob = new Blob([json], { type: 'application/json' })
+          var a = document.createElement('a')
+          a.href = window.URL.createObjectURL(blob)
+          a.download = 'naruto-panel-' + new Date().toISOString().slice(0, 10) + '.json'
+          document.body.appendChild(a)
+          a.click()
+          setTimeout(function () {
+            try { window.URL.revokeObjectURL(a.href) } catch (e) {}
+            document.body.removeChild(a)
+          }, 1000)
+          toast('已导出 JSON')
+        } else {
+          copyText(json, function (ok) {
+            toast(ok ? '已复制 JSON 到剪贴板（此浏览器不支持下载）' : '导出失败：浏览器过旧')
+          })
+        }
+      } catch (e) {
+        toast('导出失败：' + String(e && e.message))
+      }
+    })
+
+    $('btnImport').addEventListener('click', function () {
+      $('filePicker').value = ''
+      $('filePicker').click()
+    })
+
+    $('filePicker').addEventListener('change', function (ev) {
+      var file = ev.target.files && ev.target.files[0]
+      if (!file) return
+      var reader = new window.FileReader()
+      reader.onload = function () {
+        var res = CORE.importPanel(String(reader.result || ''))
+        if (!res.ok) {
+          toast('导入失败：' + (res.warnings[0] || '未知错误'))
+          return
+        }
+        writeForm(res.panel)
+        scheduleRender()
+        toast(res.warnings.length ? '已导入（有 ' + res.warnings.length + ' 条提示）' : '已导入')
+      }
+      reader.onerror = function () { toast('读取文件失败') }
+      try { reader.readAsText(file) } catch (e) { toast('读取文件失败：' + String(e && e.message)) }
+    })
+
+    $('btnPrompt').addEventListener('click', function () {
+      var text = $('promptOut').textContent || ''
+      var box = $('promptBox')
+      if (box && !box.open) box.open = true
+      copyText(text, function (ok) {
+        toast(ok ? '提示词已复制，粘到任意 AI 对话即可' : '复制失败，请手动全选下面的文本')
+      })
+    })
+
+    $('btnPrint').addEventListener('click', function () {
+      try { window.print() } catch (e) { toast('此环境不支持打印') }
+    })
+  }
+
+  // ── 示例面板（仅作占位，不代表任何真实账号）
+  var SAMPLE = {
+    level: 145,
+    targetPower: 12000000,
+    collectionBonus: { hp: 0.6, atk: 0.6, def: 0.6 },
+    boards: {
+      equipment: { hp: 420000, atk: 98000, def: 38000, crit: 32000, critResist: 26000 },
+      jade: { hp: 260000, atk: 62000, def: 24000, crit: 21000, critResist: 18000 },
+      accessory: { hp: 340000, atk: 82000, def: 30000, crit: 26000, critResist: 22000 },
+      artifact: { hp: 180000, atk: 44000, def: 17000, crit: 14000, critResist: 12000 },
+      tool_body: { hp: 300000, atk: 72000, def: 26000, crit: 22000, critResist: 19000 },
+      spirit: { hp: 220000, atk: 54000, def: 20000, crit: 16000, critResist: 14000 },
+      tool_museum: { hp: 150000, atk: 36000, def: 14000, crit: 11000, critResist: 9000 },
+      ninja_insight: { hp: 120000, atk: 30000, def: 12000, crit: 9000, critResist: 8000 },
+      bond_card: { hp: 60000, atk: 15000, def: 6000, crit: 5000, critResist: 4000 },
+      title: { hp: 40000, atk: 10000, def: 4000, crit: 3000, critResist: 3000 },
+      scroll: { hp: 50000, atk: 12000, def: 5000, crit: 4000, critResist: 3000 },
+      avatar_frame: { hp: 30000, atk: 8000, def: 3000, crit: 2500, critResist: 2000 },
+      talent: { hp: 70000, atk: 18000, def: 7000, crit: 5500, critResist: 4500 },
+      talent_shura: { hp: 50000, atk: 13000, def: 5000, crit: 4000, critResist: 3500 },
+      rune: { hp: 60000, atk: 15000, def: 6000, crit: 5000, critResist: 4000 },
+      costume: { hp: 35000, atk: 9000, def: 3500, crit: 2800, critResist: 2200 }
+    }
+  }
+
+  // ── 启动
+  function boot() {
+    try {
+      buildGrid()
+      var restored = null
+      var saved = storage.read(STORAGE_KEY)
+      if (saved) {
+        var r = CORE.importPanel(saved)
+        if (r.ok) restored = r.panel
+      }
+      if (restored) writeForm(restored)
+      bind()
+      render()
+      if (!storage.available) {
+        $('warnBox').innerHTML =
+          '<div class="warnlist">⚠ 本浏览器禁用了 localStorage（无痕模式或隐私设置），本次输入不会被保存。请用「导出 JSON」手动备份。</div>'
+      }
+
+      // 数据来源披露
+      var src = CORE.sources || {}
+      var ids = Object.keys(src)
+      var withUrl = ids.filter(function (id) { return src[id] && src[id].url })
+      $('srcInfo').innerHTML =
+        '本页面所有数值都带 <strong>confidence</strong>（置信度）与 <strong>sourceIds</strong>（来源编号），' +
+        '共收录 <strong>' + ids.length + '</strong> 条来源，其中 <strong>' + withUrl.length + '</strong> 条带原文链接。<br>' +
+        '社区数据均非官方口径。<strong>「达标线」≠「团本通关门槛」</strong>；' +
+        '属性伤害按「只取最高系属攻 − 对方该系属防 ÷20」计算；' +
+        '网上的 <code>huoyin.qq.com</code> 是《火影忍者OL》端游资料，本工具不予采用。'
+      var listHtml = ''
+      for (var i = 0; i < ids.length; i++) {
+        var s2 = src[ids[i]]
+        if (!s2 || !s2.url) continue
+        listHtml += '· <a href="' + esc(s2.url) + '" target="_blank" rel="noopener noreferrer">' +
+          esc(s2.title || ids[i]) + '</a>' +
+          (s2.kind ? ' <span class="tag">' + esc(s2.kind) + '</span>' : '') +
+          (s2.verified === false ? ' <span class="tag bad">未核对</span>' : '') + '<br>'
+      }
+      $('srcList').innerHTML = listHtml || '（无带链接的来源）'
+    } catch (e) {
+      document.body.insertAdjacentHTML('afterbegin',
+        '<div style="padding:12px;color:#f85149;font:13px sans-serif">启动异常：' + esc(String(e && e.message)) + '</div>')
+      if (window.console && console.error) console.error(e)
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot)
+  } else {
+    boot()
+  }
+})()
+</script>
+</body>
+</html>
