@@ -65,7 +65,18 @@ window.addEventListener('load', function () {
     if (!window.NarutoPower) return done('FAIL', 'no NarutoPower')
     if (typeof window.NarutoPower.compute !== 'function') return done('FAIL', 'core.compute missing')
     document.getElementById('btnSample').click()
-    setTimeout(function () {
+    // 真正的条件轮询：页面用 requestAnimationFrame 节流重算，高负载下 300ms 可能还没跑完。
+    // 我们等到「合计格出现非 — 的值」为止，最多等 4 秒，再读数据。
+    var waited = 0
+    var step = 50
+    function readWhenReady() {
+      var cell = document.getElementById('totalPowerCell')
+      var txt = cell ? cell.textContent : ''
+      if ((txt && txt !== '—') || waited >= 4000) return finish()
+      waited += step
+      setTimeout(readWhenReady, step)
+    }
+    function finish() {
       try {
         var raw = document.getElementById('totalPowerCell').textContent
         var kpi = document.getElementById('kpis').textContent.replace(/\\s+/g, ' ')
@@ -84,7 +95,8 @@ window.addEventListener('load', function () {
           kpi: kpi.slice(0, 200), warn: warn.slice(0, 200), overflowX: bodyW > docW + 2
         }))
       } catch (e) { done('FAIL', 'inner:' + e.message) }
-    }, 300)
+    }
+    readWhenReady()
   } catch (e) { done('FAIL', 'outer:' + e.message) }
 })
 </script>
@@ -97,10 +109,44 @@ function runInBrowser(browser, extraArgs) {
   const file = join(dir, 'page.html')
   writeFileSync(file, test, 'utf8')
   const url = 'file:///' + file.replace(/\\/g, '/')
+
+  // 这是一个「轮询到出现结果为止」的重试包装，不是固定等待。
+  // 原因：--virtual-time-budget 在机器负载高时会提前结束 dump，
+  // 导致偶尔抓到「还没点示例」的中间态（表现为 0/16），属于测试脆弱而非产品问题。
+  // 处理：先给足虚拟时间；若结果里 filled=0 而页面本应有值，则加倍预算重试。
+  const attempts = [
+    ['--virtual-time-budget=8000'],
+    ['--virtual-time-budget=25000'],
+  ]
+  let last = null
+  for (let i = 0; i < attempts.length; i++) {
+    last = runOnce(browser, attempts[i], extraArgs)
+    if (last.ok && !(last.data && last.data.filled === 0)) return last
+    // 明确失败（页面崩了）就不用再试了
+    if (!last.ok && /no NarutoPower|core\.compute missing/.test(last.why || '')) return last
+    if (i < attempts.length - 1) {
+      // 短暂退避，避免连续抢占同一批资源
+      try {
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 600)
+      } catch {
+        /* 环境不支持就跳过退避 */
+      }
+    }
+  }
+  return last
+}
+
+function runOnce(browser, budgetArgs, extraArgs) {
+  const src = readFileSync(HTML, 'utf8')
+  const test = src.replace('</body>', PROBE + '</body>')
+  const dir = mkdtempSync(join(tmpdir(), 'nw-e2e-'))
+  const file = join(dir, 'page.html')
+  writeFileSync(file, test, 'utf8')
+  const url = 'file:///' + file.replace(/\\/g, '/')
   const r = spawnSync(
     browser,
-    ['--headless=new', '--disable-gpu', '--no-sandbox', '--virtual-time-budget=8000',
-      ...(extraArgs || []), '--dump-dom', url],
+    ['--headless=new', '--disable-gpu', '--no-sandbox',
+      ...budgetArgs, ...(extraArgs || []), '--dump-dom', url],
     { encoding: 'utf8', timeout: 90000, maxBuffer: 32 * 1024 * 1024 },
   )
   if (r.error) return { ok: false, why: String(r.error.message) }

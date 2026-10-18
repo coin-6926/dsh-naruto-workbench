@@ -492,6 +492,31 @@ section('12. 部署契约可执行性')
   ok('有 npm run test:all 一键跑三套测试', !!(pkg.scripts && pkg.scripts['test:all']))
 }
 
+// ─────────────────────────────────────────── 13. 搜索清单与现实一致
+section('13. 搜索清单（docs/SEARCH-CHECKLIST.md）不腐化')
+{
+  const p = join(ROOT, 'docs/SEARCH-CHECKLIST.md')
+  ok('搜索清单存在', existsSync(p))
+  const md = existsSync(p) ? readFileSync(p, 'utf8') : ''
+  for (const kw of ['node tools/fetch-official.mjs', 'node tools/search-official.mjs',
+    'huoyin.qq.com', 'img.xvcai.com', '不要再去官方公告找']) {
+    ok('清单含关键指引「' + kw.slice(0, 30) + '」', md.includes(kw))
+  }
+  // 计数必须与数据层一致
+  const srcCount = Object.keys(CORE.sources).length
+  ok('清单里写的来源条数 = 实际（' + srcCount + '）', md.includes('| 来源条目 | ' + srcCount + ' |'), 'data=' + srcCount)
+  ok('清单里写的 cautions 数 = 实际（' + CORE.cautions.length + '）',
+    md.includes('| cautions | ' + CORE.cautions.length + ' |'))
+  const conflicts = (CORE.DATA.dataConflicts2026 || []).length
+  ok('清单里写的冲突数 = 实际（' + conflicts + '）', md.includes('（dataConflicts2026）') && md.includes(String(conflicts) + '（dataConflicts2026）'))
+  const farms = (CORE.sources.farm_blacklist_note.note
+    .slice(CORE.sources.farm_blacklist_note.note.indexOf('不作独立来源：'))
+    .split('。')[0].split('/').map((s) => s.trim()).filter(Boolean)).length
+  ok('清单里写的农场域名数 = 实际（' + farms + '）', md.includes('| 农场黑名单域 | ' + farms + ' |'), 'data=' + farms)
+  // 已确认负结果必须标 🚫 且写明别找
+  ok('已确认负结果被标为不要重复', /🚫 已确认"搜不到"/.test(md))
+}
+
 // ─────────────────────────────────────────── 汇总
 console.log('\n' + '═'.repeat(58))
 if (fails.length === 0) {

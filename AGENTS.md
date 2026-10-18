@@ -194,7 +194,21 @@ dev_plugin_status
 
 4. **重启 DSH**，然后用 `dev_plugin_status` 或设置页插件清单确认 `[active]`。
 
-### 4.3 只想在对话里用数据，不装插件
+### 4.3 🔍 要补数据？先看搜索清单
+
+`docs/SEARCH-CHECKLIST.md` 是一份**检索工单**：20 个待升级项按优先级排好，
+每项都有「现状 / 检索动作 / 判定标准」，另外标了 **2 项已确认搜不到的（不要重复）**、
+**23 个农场黑名单域**、**6 条实测捷径**。
+
+装了插件会多出 3 个工具（`naruto_reference` / `naruto_analyze` / `naruto_save_panel`），
+但**官方公告通道是独立工具**（不依赖插件）：
+
+```bash
+node tools/fetch-official.mjs --aid <id>
+node tools/search-official.mjs --tags all --kw 关键词
+```
+
+### 4.4 只想在对话里用数据，不装插件
 
 直接用 CLI 的 `--sources` / `--json`，或读仓库里的 `docs/DATA-SOURCES.md`（每条数值的出处与置信度）。
 

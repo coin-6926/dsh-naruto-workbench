@@ -1,6 +1,6 @@
 /*!
  * naruto-workbench core (UMD) — 火影忍者手游战力工作台核心
- * 生成时间 2026-10-18T07:16:06.688Z
+ * 生成时间 2026-10-18T07:20:26.663Z
  * 本文件由 tools/build-portable.mjs 自动生成，请勿手改。
  */
 (function (root, factory) {
