@@ -527,6 +527,81 @@ section('8. 跨端一致性（client 算法 vs host 算法）')
   }
 }
 
+/* ═══════════════════ 9. 第四轮数据：可推导性优先 ═══════════════════ */
+section('9. 第四轮数据（能算的就不信二手表）')
+{
+  // ★ 最强断言：忍玉消耗必须能由经验公式算出来
+  const yanYuTo = (L) => {
+    let exp = 0
+    for (let n = 1; n <= L; n++) exp += 130 + 30 * (n - 1)
+    return exp * 2 // 10 忍玉 = 5 经验 ⇒ 1 经验 = 2 忍玉
+  }
+  ok('神器忍玉 70 级可由经验公式推出 = 163100',
+    yanYuTo(70) === 163100, String(yanYuTo(70)))
+  ok('神器 data 里的推导值与公式一致（70/140/280）',
+    PD.growth.artifact.expFormula.verified.every((r) => yanYuTo(r.level) === r.derivedYanYu),
+    JSON.stringify(PD.growth.artifact.expFormula.verified.map((r) => yanYuTo(r.level))))
+  ok('已明确记下「上一轮 8.8 万是错的」',
+    PD.growth.artifact.expFormula.correction.includes('8.8 万') &&
+    PD.growth.artifact.expFormula.correction.includes('错'))
+
+  ok('神器「战力单价不可唯一确定」已留痕',
+    typeof PD.growth.artifact.powerColumnUnresolvable.verdict === 'string' &&
+    PD.growth.artifact.powerColumnUnresolvable.verdict.includes('不是唯一解'))
+
+  ok('175 级只记为未确证信号（不得据此改表）',
+    PD.gameStatus.possibleCap175.value === 175 &&
+    PD.gameStatus.possibleCap175.confidence === 'unverified' &&
+    PD.gameStatus.levelCap.value === 170,
+    `cap=${PD.gameStatus.levelCap.value}, 175信号=${PD.gameStatus.possibleCap175.confidence}`)
+
+  ok('秘卷碎片战力比随等级递减已记录（9.5 → 0.63）',
+    PD.growth.scroll.fragmentDecay.lowTier.rate === 9.5 &&
+    PD.growth.scroll.fragmentDecay.highTier.rate === 0.63)
+
+  ok('秘卷 30 级 vs 60 级记为版本冲突而非错误',
+    PD.growth.scroll.maxLevelConflict.earlier.value === 30 &&
+    PD.growth.scroll.maxLevelConflict.later.value === 60 &&
+    PD.growth.scroll.maxLevelConflict.verdict.includes('版本差异'))
+
+  ok('勾玉六色映射已采纳且黄含攻击',
+    Array.isArray(PD.growth.jade.colorMap.yellow.attrs) &&
+    PD.growth.jade.colorMap.yellow.attrs.includes('atk') &&
+    PD.growth.jade.colorMap.priority[0] === '黄')
+
+  ok('通灵端开孔规则已记录（2 孔 + 5/10/15 阶各 +1 = 5）',
+    PD.growth.jade.spiritSlotRule.initial === 2 &&
+    PD.growth.jade.spiritSlotRule.maxPerSpirit === 5 &&
+    PD.growth.jade.spiritSlotRule.unlockAtAdvanceStages.length === 3)
+
+  ok('装备分品阶上限已记录（橙 +59）',
+    PD.growth.equipment.enhanceCapByTier['橙'] === 59 &&
+    PD.growth.equipment.enhanceCapByTier['紫'] === 15)
+
+  ok('装备橙色阶段节点冲突并列未合并',
+    Array.isArray(PD.growth.equipment.orangeStageConflict.previousRound) &&
+    Array.isArray(PD.growth.equipment.orangeStageConflict.thisRound) &&
+    PD.growth.equipment.orangeStageConflict.verdict.includes('不合并'))
+
+  // 虚战三口径的阈值：两条采、一条明确不采
+  const th = PD.communityConflicts[0].thirdDefinition.thresholds
+  ok('虚战阈值三条都已评估', Array.isArray(th) && th.length === 3)
+  ok('★「生命 5 万」被明确判为不采信（量纲差一个数量级）',
+    th.some((x) => x.what === '生命虚战' && x.verdict.includes('不采信')))
+  ok('★ 属性防御溢出规则与已有减法公式一致',
+    th.some((x) => x.what === '属性防御溢出' && x.verdict.includes('可采')))
+
+  ok('本轮验算记录 3 条', PD.round4Verifications.length === 3)
+
+  // 每条数据都必须挂来源，或明确说明为什么没有
+  const unlabeled = []
+  for (const k of ['expFormula', 'colorMap', 'spiritSlotRule']) {
+    const node = PD.growth.artifact[k] || PD.growth.jade[k]
+    if (node && !node.sourceIds && !node.confidence) unlabeled.push(k)
+  }
+  ok('本轮新增数据都带 sourceIds 或 confidence', unlabeled.length === 0, unlabeled.join(','))
+}
+
 /* ═════════════════════════════ 汇总 ═════════════════════════════ */
 
 console.log(`\n${'═'.repeat(62)}`)
