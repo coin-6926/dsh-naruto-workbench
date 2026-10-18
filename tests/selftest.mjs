@@ -61,12 +61,15 @@ ok('成长曲线：神器 3 档（70/140/280）',
 ok('成长曲线：通灵进阶有 sweetSpots（最优节点）',
   Array.isArray(PD.growth.spiritAdvance.sweetSpots) && PD.growth.spiritAdvance.sweetSpots.length >= 2)
 ok('成长曲线：勾玉体现实测数据', PD.growth.jade.bodyTotals.length === 2)
-ok('战力标准表覆盖 50~175 级且严格单调递增',
+ok('战力标准表覆盖 50~175 级，有值的行严格单调递增',
   PD.powerStandards.table.length === 22 &&
   PD.powerStandards.table[0].level === 50 &&
   PD.powerStandards.table[PD.powerStandards.table.length - 1].level === 175 &&
-  PD.powerStandards.table.every((r, i) => i === 0 || r.power > PD.powerStandards.table[i - 1].power),
-  `${PD.powerStandards.table.length} 行, 首行 ${PD.powerStandards.table[0].level} 级, 末行 ${PD.powerStandards.table[PD.powerStandards.table.length - 1].level} 级`)
+  // ★ 175 级已撤下插值（power=null，改分位制），所以只校验有值的行
+  PD.powerStandards.table
+    .filter((r) => r.power !== null)
+    .every((r, i, arr) => i === 0 || r.power > arr[i - 1].power),
+  '175级 power=' + PD.powerStandards.table[PD.powerStandards.table.length - 1].power)
 ok('战力标准表标为低置信且带诚实声明',
   PD.powerStandards.confidence === 'low' && typeof PD.powerStandards.independentSourceWarning === 'string',
   PD.powerStandards.confidence)
@@ -109,9 +112,6 @@ ok('勾玉：旧 2016 表已降级，且明确说明不可再用于计算',
 ok('勾玉：1~9 级单颗表已收录且 9 行「战力÷攻击」全等于 3.5',
   PD.growth.jade.perGemTable.length === 9 &&
   PD.growth.jade.perGemTable.every((r) => Math.abs(r.power / r.atk - 3.5) < 1e-9))
-ok('勾玉：通灵端孔数矛盾已留痕（不冒充已知）',
-  typeof PD.growth.jade.slotsConflict === 'string' &&
-  PD.growth.jade.slots.equipmentTotal === 30)
 ok('数据源包含农场黑名单备注',
   !!PD.sources.farm_blacklist_note && String(PD.sources.farm_blacklist_note.note).includes('guotao606'))
 ok('所有 sourceIds 无悬空引用', (() => {
@@ -233,9 +233,9 @@ ok('★ ÷20 现有 2 个来源、升为 high（恒心 + 实战实测视频）',
   typeof PD.elemCrossCheck.twentyPerPercent.rejectedSecondSource === 'string',
   `confidence=${PD.elemCrossCheck.twentyPerPercent.confidence}, lines=${PD.elemCrossCheck.twentyPerPercent.lines.length}`)
 
-ok('★ 属性防御 10 / 属性攻击 6 已升为 medium，且值未变',
-  PD.elemCrossCheck.elemDefPerPoint.confidence === 'medium' &&
-  PD.elemCrossCheck.elemAtkPerPoint.confidence === 'medium' &&
+ok('★ 属性防御 10 / 属性攻击 6 已升为 high，且值未变',
+  PD.elemCrossCheck.elemDefPerPoint.confidence === 'high' &&
+  PD.elemCrossCheck.elemAtkPerPoint.confidence === 'high' &&
   PD.elemCrossCheck.elemDefPerPoint.value === 10 &&
   PD.elemCrossCheck.elemAtkPerPoint.value === 6)
 
@@ -577,20 +577,16 @@ ok('★ 官方金句逐字留存（可核对）',
     PD.growth.scroll.fragmentDecay.lowTier.rate === 9.5 &&
     PD.growth.scroll.fragmentDecay.highTier.rate === 0.63)
 
-  ok('秘卷 30 级 vs 60 级记为版本冲突而非错误',
+  ok('★ 秘卷上限已定案为 30 级（官方原文），60 级降为可疑',
     PD.growth.scroll.maxLevelConflict.earlier.value === 30 &&
-    PD.growth.scroll.maxLevelConflict.later.value === 60 &&
-    PD.growth.scroll.maxLevelConflict.verdict.includes('版本差异'))
+    PD.growth.scroll.maxLevelConflict.earlier.confidence === 'high' &&
+    PD.growth.scroll.maxLevelConflict.verdict.includes('采信 30 级'))
 
   ok('勾玉六色映射已采纳且黄含攻击',
     Array.isArray(PD.growth.jade.colorMap.yellow.attrs) &&
     PD.growth.jade.colorMap.yellow.attrs.includes('atk') &&
     PD.growth.jade.colorMap.priority[0] === '黄')
 
-  ok('通灵端开孔规则已记录（2 孔 + 5/10/15 阶各 +1 = 5）',
-    PD.growth.jade.spiritSlotRule.initial === 2 &&
-    PD.growth.jade.spiritSlotRule.maxPerSpirit === 5 &&
-    PD.growth.jade.spiritSlotRule.unlockAtAdvanceStages.length === 3)
 
   ok('装备分品阶上限已记录（橙 +59）',
     PD.growth.equipment.enhanceCapByTier['橙'] === 59 &&
@@ -682,14 +678,55 @@ section('11. 神器单价与勾玉冲突（本轮补搜）')
 
   // 勾玉两条新冲突
   const j = PD.growth.jade
-  ok('★ 勾玉每件槽位 30 vs 36 冲突已留痕，且装备端降为 low',
-    j.slots.equipmentTotalAlt.value === 36 && j.slots.confidence === 'low')
-  ok('★ 勾玉精炼上限 30 vs 20 冲突已留痕',
-    j.rules2.refineCapConflict.a.value === 30 && j.rules2.refineCapConflict.b.value === 20)
-  ok('★ 精炼每级 +10%/满级 200% 记为单源线索（不用于计算）',
+  ok('★★ 勾玉孔数已定案（用户游戏内一手）：装备总位 36 / 默认已开 30',
+    j.slots.equipmentTotalSlots === 36 &&
+    j.slots.equipmentDefaultOpen === 30 &&
+    j.slots.equipmentSides.every((s) => s.slots === 6) &&
+    j.slots.confidence === 'high',
+    'total=' + j.slots.equipmentTotalSlots + ' open=' + j.slots.equipmentDefaultOpen)
+  ok('★★ 通灵端孔位（第4版正确：总 9 孔 / 默认 6 孔）',
+    j.spiritSlotRule.slotsPerSpirit === 9 &&
+    j.spiritSlotRule.defaultOpen === 6 &&
+    j.spiritSlotRule.unlocks.length === 3 &&
+    j.spiritSlotRule.unlocks[0].stage === 5 && j.spiritSlotRule.unlocks[0].refineStone === 100 &&
+    j.spiritSlotRule.unlocks[1].stage === 10 && j.spiritSlotRule.unlocks[1].refineStone === 300 &&
+    j.spiritSlotRule.unlocks[2].stage === 15 && j.spiritSlotRule.unlocks[2].refineStone === 600 &&
+    j.spiritSlotRule.unlocks[2].scroll === 2,
+    'total=' + j.spiritSlotRule.slotsPerSpirit + ' open=' + j.spiritSlotRule.defaultOpen)
+  ok('★ 单只合计 = 1000 精炼石 + 2 高级通灵卷轴（可现场加总）',
+    j.spiritSlotRule.unlocks.reduce((a, u) => a + u.refineStone, 0) === j.spiritSlotRule.costPerSpirit.refineStone &&
+    j.spiritSlotRule.unlocks.reduce((a, u) => a + u.scroll, 0) === j.spiritSlotRule.costPerSpirit.scroll)
+  ok('★★ 卷轴瓶颈已核算（18只 → 36个 → 约7年，且与通灵进阶抢资源）',
+    j.resourceBottleneck.advancedSpiritScroll.totalAt18Spirits === 36 &&
+    j.resourceBottleneck.advancedSpiritScroll.competingUse.includes('进阶') &&
+    j.resourceBottleneck.advancedSpiritScroll.verdict.includes('7 年'))
+  ok('★ 全身孔数口径已核算（18只 → 总位198 / 已开138）',
+    j.resourceBottleneck.slotTotals.at18Spirits.total === 36 + 18 * 9 &&
+    j.resourceBottleneck.slotTotals.at18Spirits.defaultOpen === 30 + 18 * 6)
+  ok('★ 四代版本教训已留档（含「重述用户原话导致误读」）',
+    j.spiritSlotRule.fourVersionsLesson.v3.includes('默认 6 个') &&
+    j.spiritSlotRule.fourVersionsLesson.rule2.includes('原样留存') &&
+    j.spiritSlotRule.fourVersionsLesson.rule3.includes('总数还是默认值'))
+  ok('★ 旧错误字段已清除（equipmentTotalAlt / slotsConflict）',
+    j.slots.equipmentTotalAlt === undefined && j.slotsConflict === undefined)
+  ok('★ 孔数冲突已标 RESOLVED',
+    PD.dataConflicts2026.some((c) => c.topic.includes('槽位数') && String(c.status).startsWith('RESOLVED')) &&
+    PD.dataConflicts2026.some((c) => c.topic === '勾玉总孔位数' && String(c.status).startsWith('RESOLVED')))
+  ok('★ 一手来源类型登记为 in-game（优先级最高）',
+    PD.sources.user_ingame_2026.verified === 'in-game')
+  ok('★★ 勾玉精炼上限已裁决：版本演进（2018 年 20 → 2020 年起 30），取 30',
+    j.rules2.refineCapResolved.current === 30 &&
+    j.rules2.refineCapResolved.timeline.length === 5 &&
+    j.rules2.refineCapResolved.verdict.includes('2020 年起已提到 30 级'),
+    'cap=' + j.rules2.refineCapResolved.current)
+  ok('★ 时间线里两个口径都能各自自洽（20×10%=200%）',
+    j.rules2.refineCapResolved.timeline.some((x) => x.value === 20 && x.note.includes('200%')) &&
+    j.rules2.refineCapResolved.timeline.some((x) => x.value === 30))
+  ok('★ 精炼每级 +10% 已升级为两源一致，满级按 30 级推为 +300%',
     j.rules2.refineGainPerLevel.value === 0.1 &&
-    j.rules2.refineGainPerLevel.full === 2 &&
-    j.rules2.refineGainPerLevel.confidence === 'low')
+    j.rules2.refineGainPerLevel.full === 3 &&
+    j.rules2.refineGainPerLevel.oldFull.value === 2 &&
+    j.rules2.refineGainPerLevel.confidence === 'medium')
   ok('★ 勾玉优先级「黄>青>紫」获第 3 源确认',
     j.colorMap.priorityConfirmedBy.length === 3)
 
@@ -750,6 +787,167 @@ section('12. 贴吧三贴：系数全高 + 官方公式 + 战力补正')
   ok('★ 三个贴吧来源标为 user-screenshot（抓取仍 403）',
     ['tieba_attr_test', 'tieba_power_formula', 'tieba_collection_bonus']
       .every((id) => PD.sources[id].verified === 'user-screenshot'))
+}
+
+/* ═══════════════════ 13. 外部补源报告核实 ═══════════════════ */
+section('13. 外部补源报告（Saber）独立核实结论')
+{
+  // 秘卷上限：官方 2017-03-22 定 30 级
+  ok('★★ 秘卷官方原文已入库（可追溯 URL + 原句）',
+    PD.growth.scroll.maxLevelConflict.officialRuling.officialQuote.includes('30级') &&
+    PD.growth.scroll.maxLevelConflict.officialRuling.sourceUrl.includes('hyrz.qq.com'))
+  ok('★ 60 级已降为可疑留痕，不再与 30 级并列',
+    String(PD.growth.scroll.maxLevelConflict.later.status).includes('可疑') ||
+    String(PD.growth.scroll.maxLevelConflict.later.status).includes('压制'))
+
+  // 通灵进阶阶位：5/10/15/20（我曾误记 4/9/14/19）
+  ok('★★ 通灵天赋解锁阶位已修正为 5/10/15/20',
+    PD.growth.spiritAdvance.note.includes('5 / 10 / 15 / 20') &&
+    PD.growth.spiritAdvance.note.includes('把消耗分组区间'),
+    PD.growth.spiritAdvance.note.slice(0, 28))
+  ok('★ 已删除错误的 4/9/14/19 说法',
+    !PD.growth.spiritAdvance.note.includes('4/9/14/19 阶需要通灵卷轴'))
+
+  // 勾玉 7/8/9 级
+  ok('★ 勾玉 7/8 级升 medium（×3.5 精确）',
+    PD.growth.jade.perGemTable[6].confidence === 'medium' &&
+    PD.growth.jade.perGemTable[7].confidence === 'medium')
+  ok('★ 勾玉 9 级已升 medium（换算精确 + 级间倍率外推自洽）',
+    PD.growth.jade.perGemTable[8].confidence === 'medium' &&
+    PD.growth.jade.perGemTable[8].howToConfirm !== undefined)
+  ok('★ 勾玉各级战力 = 攻击 × 3.5 全部精确（现场复算）',
+    PD.growth.jade.perGemTable.every((g) => Math.abs(g.atk * 3.5 - g.power) < 0.01))
+
+  // 精炼交叉验证
+  ok('★ 精炼 +300% 已有算式交叉验证（684×4=2736）',
+    PD.growth.jade.rules2.refineGainPerLevel.crossCheck.math.includes('2736'))
+
+  // 两个新官方来源
+  ok('★ 两个新官方来源已注册且 verified=true',
+    PD.sources.official_20170322.verified === true &&
+    PD.sources.official_20200629.verified === true)
+  ok('★ 官方源注明 GBK 编码坑（避免下次抓乱码）',
+    PD.sources.official_20170322.note.includes('GBK'))
+
+  // 拒绝采纳：暴击倍率仍不选边（农场三源不算独立）
+  ok('★ 暴击倍率仍保持未定（拒绝农场的所谓「三源一致」）',
+    !JSON.stringify(PD).includes('已选边 1.5 倍'))
+}
+
+
+/* ═══════════════════ 14. P1P2 检索交付核实 ═══════════════════ */
+section('14. P1P2 检索交付（外部）独立核实')
+{
+  // ★★ 我的错误：招财 23 万是 10 连满档，不是免费日收益
+  ok('★★ 已修正「招财 23 万 = 免费日收益」的错误',
+    PD.resourceIncome.copper.note.includes('连续 10 次招财') &&
+    PD.resourceIncome.copper.note.includes('0.5~1.3 万/天'),
+    '含免费档说明')
+  ok('★ 修正时自认了陷阱类型（总数 vs 默认值）',
+    PD.resourceIncome.copper.note.includes('总数 vs 默认值'))
+  ok('★ 招财官方原文来源已入库且注明双档',
+    PD.sources.official_201603_copper.verified === true &&
+    PD.sources.official_201603_copper.note.includes('每天可免费招财1次'))
+
+  // ★★ 忍传感悟 1800 官方定案
+  ok('★★ 忍传感悟 1800 已由官方原文定案（high）',
+    PD.collectionMilestones.insightNodesOfficial.confidence === 'high' &&
+    PD.collectionMilestones.insightNodesOfficial.officialQuote.includes('1800级') &&
+    PD.collectionMilestones.insightNodesOfficial.sourceUrl.includes('18101284'))
+  ok('★ 未证实的子项已明确列出（不冒充已知）',
+    PD.collectionMilestones.insightNodesOfficial.stillUnverified.length === 3)
+
+  // ★ 秘卷消耗表升 high，且双项闭合
+  ok('★ 秘卷消耗表已升 high（官方原表）',
+    PD.growth.scroll.confidence === 'high' && !!PD.growth.scroll.officialTable)
+  ok('★ 秘卷碎片加总 = 325（现场复算）',
+    PD.growth.scroll.fragmentsPerLevel.reduce((a, b) => a + b, 0) === 325)
+  ok('★ 秘卷铜币加总 = 585,271（现场复算）',
+    PD.growth.scroll.copperPerLevel.reduce((a, b) => a + b, 0) === 585271)
+  ok('★ 官方表头（w）笔误已标注',
+    PD.growth.scroll.officialTable.typoCaveat.includes('笔误'))
+
+  // ★★ 175 级插值已撤下
+  ok('★★ 175 级达标线插值已撤下（power = null）',
+    PD.powerStandards.table.find((r) => r.level === 175).power === null)
+  ok('★ 已改用分位制并给出出处',
+    PD.powerStandards.table.find((r) => r.level === 175).replacement.includes('分位制'))
+  ok('★ 交易平台「175忍」陷阱已记录（防误读）',
+    PD.powerStandards.table.find((r) => r.level === 175).trapWarning.includes('忍者数量'))
+
+  // ★ 装备进阶演进链
+  ok('★ 装备进阶演进链完整（39阶@2018 → 69阶@2022 → 89阶@2026）',
+    PD.sources.official_20220908.note.includes('69阶') &&
+    PD.sources.official_20220908.note.includes('39 阶'))
+
+  // ★ 农场黑名单扩容
+  ok('★ 农场黑名单已扩到 38 域（新增 15 个同族）',
+    PD.sources.farm_blacklist_note.note.includes('qinglan314.cn') &&
+    PD.sources.farm_blacklist_note.note.includes('muke400.com'))
+
+  // ★ 暴击倍率维持未定（拒绝对抗农场的"1.5 定案"）
+  ok('★ 暴击倍率维持未证实（不接受农场三源定案）',
+    !JSON.stringify(PD).includes('暴击倍率已定案'))
+}
+
+/* ═══════════════════ 15. P0 三项溯源核实 ═══════════════════ */
+section('15. P0 三项溯源（外部）独立核实')
+{
+  const sim = PD.growth.accessory.decompositionSimulator
+
+  // ★★ P0-3 云迹分解：模拟器实测已入库，CSDN 弃用
+  ok('★★ 云迹分解返保已改用游戏内模拟器实测（四点在库）',
+    sim.yunjiEarring.jingliang30.rune === 769 &&
+    sim.yunjiEarring.jingliang35.rune === 1095 &&
+    sim.yunjiEarring.chuanshuo30.rune === 1076 &&
+    sim.yunjiEarring.chuanshuo35.rune === 1533)
+  ok('★ CSDN 1135/1595 已明确弃用（不是并列保留）',
+    sim.csdnVerdict.verdict.includes('弃用'))
+  ok('★ 连带警示已记录：同表其余行也应待验',
+    sim.csdnVerdict.knockOnWarning.includes('内部自洽'))
+  ok('★★ 传说/精良 = 1.40 可现场复算（两档独立收敛）',
+    Math.abs(sim.yunjiEarring.chuanshuo30.rune / sim.yunjiEarring.jingliang30.rune - 1.4) < 0.001 &&
+    Math.abs(sim.yunjiEarring.chuanshuo35.rune / sim.yunjiEarring.jingliang35.rune - 1.4) < 0.001)
+  ok('★ 部位不影响返还已记录（耳环=项链六组全同）',
+    sim.partDoesNotMatter.confidence === 'high' &&
+    /六组|6 组/.test(sim.partDoesNotMatter.evidence))
+  ok('★ 命名已修正为游戏内正式名「强化符」',
+    sim.namingCorrection.inGameName === '强化符' &&
+    sim.namingCorrection.communityName === '保护符')
+  ok('★ 官方模拟器入口已记录（可一次性定案所有分解值）',
+    sim.howToAccess.includes('饰品分解模拟器'))
+  ok('★ 来源性质诚实标注（未直接看到截图）',
+    sim.verified === 'reported-user-screenshot' &&
+    sim.verifiedCaveat.includes('未直接核对'))
+
+  // ★★ P0-2 勾玉 684/1140 不是冲突，是两个等级
+  ok('★★ 勾玉 684=8级 / 1140=9级（撤销此前的伪冲突判定）',
+    PD.growth.jade.perGemTable[7].atk === 684 &&
+    PD.growth.jade.perGemTable[8].atk === 1140 &&
+    PD.growth.jade.perGemTable[7].conflict === undefined)
+  ok('★ 勾玉 9 级已升 medium（级间倍率外推自洽）',
+    PD.growth.jade.perGemTable[8].confidence === 'medium')
+  ok('★★ 勾玉镶嵌机制已补：一个孔位可放多颗同属性',
+    PD.growth.jade.inlayMechanics.multipleGemsPerSlot.rule.includes('多颗'))
+  ok('★★ 勾玉「合成亏」可现场复算（3×400=1200 → 684，损失 43%）',
+    PD.growth.jade.inlayMechanics.mergeIsLoss.calc.includes('1200') &&
+    PD.growth.jade.inlayMechanics.mergeIsLoss.calc.includes('684'))
+
+  // ★ P0-1 通灵只数四口径
+  ok('★★ 通灵只数四口径已辨析（14/17/18/34）',
+    PD.growth.jade.spiritCount.fourReadings.map((r) => r.count).join('/') === '14/17/18/34')
+  ok('★ 已明确"消耗计算用 14，收集度用 34"',
+    PD.growth.jade.spiritCount.fourReadings[0].recommendedFor.includes('14') ||
+    PD.growth.jade.spiritCount.fourReadings[0].recommendedFor.includes('这个'))
+  ok('★ 14 只能现场复算加总（6+3+4+1）',
+    (6 + 3 + 4 + 1) === 14)
+  ok('★ 已记录该数对结论量级的影响（18→14 会让卷轴需求从 36 降到 28）',
+    PD.growth.jade.spiritCount.impactOnCalculations.includes('28'))
+
+  // 农场名单
+  ok('★ 农场黑名单已扩到 40 域',
+    PD.sources.farm_blacklist_note.note.includes('464ruoming.com') &&
+    PD.sources.farm_blacklist_note.note.includes('337jubai.com'))
 }
 
 /* ═════════════════════════════ 汇总 ═════════════════════════════ */

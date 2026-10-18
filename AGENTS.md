@@ -34,7 +34,7 @@ cd dsh-naruto-workbench
 node tests/selftest.mjs
 ```
 
-期望结尾：`工作台自测：通过 189 项，失败 0 项` / `全部通过 ✓`
+期望结尾：`工作台自测：通过 239 项，失败 0 项` / `全部通过 ✓`
 
 - 若报 `node: command not found` → 用户没有 Node。**直接走路径 A**（不需要 Node 也能用 HTML）。
 - 若项数不同但失败 0 → 可以继续，只是版本比文档新。
@@ -74,6 +74,8 @@ node tools/build-portable.mjs
 想真在浏览器里验证（本机有 Chrome/Edge 时）：
 
 ```bash
+node tests/robustness.test.mjs   # 健壮性：fuzz 400 组 / 不变量 / ES2015 语法下限 / 原型污染
+node tests/stress.test.mjs       # 极端输入：数值边界 / 结构攻击 / 重复加载
 node tests/browser.e2e.mjs
 ```
 
@@ -103,7 +105,7 @@ node dist/naruto-cli.cjs --panel 面板.json          # 读面板
 node dist/naruto-cli.cjs --panel p.json --json      # 机器可读（便于你解析）
 node dist/naruto-cli.cjs --panel p.json --prompt    # 输出给 AI 的提示词
 node dist/naruto-cli.cjs --panel p.json --income 100000   # 给了日收益才会估天数
-node dist/naruto-cli.cjs --sources                  # 列出全部数据来源（64 条）
+node dist/naruto-cli.cjs --sources                  # 列出全部数据来源（74 条）
 cat panel.json | node dist/naruto-cli.cjs           # 支持 stdin
 ```
 
@@ -198,7 +200,7 @@ dev_plugin_status
 
 `docs/SEARCH-CHECKLIST.md` 是一份**检索工单**：20 个待升级项按优先级排好，
 每项都有「现状 / 检索动作 / 判定标准」，另外标了 **2 项已确认搜不到的（不要重复）**、
-**23 个农场黑名单域**、**6 条实测捷径**。
+**40 个农场黑名单域**、**6 条实测捷径**。
 
 装了插件会多出 3 个工具（`naruto_reference` / `naruto_analyze` / `naruto_save_panel`），
 但**官方公告通道是独立工具**（不依赖插件）：
@@ -274,7 +276,7 @@ node tools/fetch-official.mjs --tags
 | 插件 `[no-fiber]` / `failed` | 依赖缺失或 `register` 返回值不规范 | 本插件**零运行时依赖**，正常情况下不该失败；先看 `dev_plugin_status` 的失败审计日志 |
 | `duplicate loader entry id` 启动崩溃 | 反复 inject/uninject 在 profile patch 里留下重复条目 | 用 `dev_fix_patch check=true` 先查，再 `dev_fix_patch` 修 |
 | `git push` 报 443 连接失败 | 网络限制 | 用 `gh api` Git Data API 推送；内容一致性用逐字符比对确认 |
-| `selftest` 项数不是 189 | 版本更新 | 只要「失败 0 项」即可，项数会随版本增加 |
+| `selftest` 项数不是 239 | 版本更新 | 只要「失败 0 项」即可，项数会随版本增加 |
 | 浏览器 E2E 打印「跳过」 | 本机没装 Chrome/Edge | 不算失败；可设 `CHROME_PATH` 环境变量指定浏览器 |
 
 ---
@@ -302,5 +304,5 @@ src/portable/ui.src.html   单文件 HTML 模板
 tools/build-portable.mjs ★ 把上面两个打包成 dist/
 dist/                    ★ 构建产物（已提交，clone 即可用）
 docs/DATA-SOURCES.md     ★ 数据来源与置信度审计（回答数值前必读）
-tests/                   selftest(189) / portable(131) / browser.e2e(11)
+tests/                   selftest(239) / portable(157) / robustness(37) / stress(8) / browser.e2e(11)
 ```

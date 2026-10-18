@@ -1,0 +1,119 @@
+总量: 117
+分布: {"high":28,"medium":37,"low":46,"unverified":6}
+
+⚠ 父级置信度低于子级高置信项的节点：5 处
+  root.growth.artifact  (父级 medium)
+     有 high: expFormula（忍玉经验公式，推 70/140/280 级全对） / refineConversion（60轮回=12.5生命/4.8攻击/3防御，0.00% 闭环）
+     读法: 本块整体 medium，但忍玉消耗与轮回换算两项是 high，可直接用。
+  root.growth.equipment  (父级 low)
+     有 high: advanceTiers（装备进阶 89 阶，官方公告原文）
+     读法: 「装备进阶 89 阶」= 官方 high；「装备强化 +59」= 社区单源 low。这是**两个不同维度**，不能互相替代，也不能因为 +59 低就把 89 阶也当成低。
+  root.growth.talent  (父级 low)
+     有 high: shuraTiersOfficial（修罗天赋新增 25~30 阶，官方公告原文）
+     读法: 本块整体 low，但「2026-09 新增 25~30 阶」是官方 high。
+  root.growth.jade  (父级 low)
+     有 high: slots（总位36/默认30，用户一手） / spiritSlotRule（总9孔/默认6孔+逐级花费，用户一手）
+     读法: 本块整体 low 是因为「全身总战力」仍不可用；但**孔数与解锁成本都是 high（用户游戏内一手）**。不要因为父级 low 就忽略 slots / spiritSlotRule。
+  root.resourceIncome.gold  (父级 medium)
+     有 high: officialDeltas（活跃度宝箱 +30 / 大福袋 +50，官方原文）
+     读法: 增量是官方硬数据，基线是社区估算；两者可信度不同，别混成一个数。
+
+########## UNVERIFIED  共 6 条（折叠 6 组）##########
+  [unverified] root.officialAudit.incidental[i]  (srcs:0)
+  [unverified] root.gameStatus.possibleCap175 = 175  (srcs:0)
+  [unverified] root.growth.spiritAdvance.sweetSpots[i]  (srcs:0)
+        同样来自农场转载，具体数值未验证
+  [unverified] root.growth.scroll.maxLevelConflict.later = 60  (srcs:0)
+  [unverified] root.growth.jade.spiritCount.fourReadings[i]  (srcs:0)
+  [unverified] root.powerStandards.table[i]  (srcs:1)
+
+########## LOW  共 46 条（折叠 23 组）##########
+  [low] root.elemCrossCheck.powerCorrectionResidual = 常见 406 或 324  (srcs:1)
+  [low] root.coefficientVerifications[i]  (srcs:2)
+  [low] root.officialAudit.incidental[i]  x2  (srcs:0)
+  [low] root.tiebaEvidence.powerFormula.powerCorrection = 406（常见）或 324  (srcs:0)
+        规律未知，本项目不建模；仅作为「为什么算不准」的备忘。若你算出的战力差几百点，别去改系数。
+  [low] root.tiebaEvidence.collectionBonus.measuredBonusRange  (srcs:0)
+        一位 225 级玩家的实测值；本项目 collectionBonus 默认 0，正确做法是让用户从面板读。此数仅作量级参考。
+  [low] root.collectionMilestones.fiveStarS  (srcs:1)
+        「一个五星 S 忍全属性加成是 20.3%，四星 16.2%，三星 12.2%」——第一个五星 S 会一次性拉高全属性加成上限，所以很多人第一个五星 S 一到位就涨几十万战力；之后再升五星（或更低星级）只会增加收集加成的战力。
+  [low] root.collectionMilestones.insightNodes  (srcs:1)
+        羁绊升级中途换忍者不增加消耗（材料数量不变），所以可以按喜好选高招 S。
+  [low] root.collectionMilestones.basePowerDefinition  (srcs:1)
+  [low] root.growth.artifact.whiteFangBenchmark = 410000  (srcs:0)
+        轮回石贡献约 60%、忍玉约 40%
+  [low] root.growth.spiritAdvance  (srcs:2)
+        ★ 修正（2026-10-18）：**天赋在 5 / 10 / 15 / 20 阶各解锁一个**（每 5 阶一个），满阶 20 阶；5 阶起需通灵卷轴 + 声望。此前记的「4/9/14/19 阶」是**把消耗分组区间（0-4 / 5-9 / 10-14 / 15-19）误当成了解锁阶位**，两者差 1。大进阶声望三档：3 万 / 4.5 万 / 9 万（来源
+  [low] root.growth.spiritAdvance.sweetSpots[i]  x2  (srcs:1)
+        策略上优先做（2 个来源支持"先均升"），但**具体战力增量未验证**
+  [low] root.growth.equipment  (srcs:2)
+        「+59」「5 品阶」「+4/+16/+24 阶段点」来自同一篇 2024-12 文章，单源且 2026 年无更新来源 → 是否已提上限未确证。另有 App Store 描述称「装备进阶提升至 84 阶」，与 +59 可能是两个不同维度（进阶阶数 vs 强化等级），**无来源说明，不能合并**，故单列在 dataConflicts2026。
+        ★ 本块含高置信子项: advanceTiers（装备进阶 89 阶，官方公告原文）
+  [low] root.growth.equipment.powerBenchmark  (srcs:0)
+  [low] root.growth.scroll.powerClaims  (srcs:0)
+  [low] root.growth.talent  (srcs:3)
+        110 级开放有 2 个来源，但其中一篇把天赋写成「增加影分身数量」，AI 味重，只算旁证。另 2025-08 有「2025-09 大版本开启新的修罗天赋」的说法，与「110 级早已开放」不矛盾（应理解为新增分支），但原文措辞含糊。
+        ★ 本块含高置信子项: shuraTiersOfficial（修罗天赋新增 25~30 阶，官方公告原文）
+  [low] root.growth.jade  (srcs:5)
+        「3 颗合 1 级」「1~9 级上限」「精炼 30 级」「9 级上限」有多源支持；1~9 级单颗属性/战力表内部完全自洽（÷攻击 = 3.5，9 行无一例外），故可用。但**全身总战力**与**通灵端孔数**仍不可用。
+        ★ 本块含高置信子项: slots（总位36/默认30，用户一手） / spiritSlotRule（总9孔/默认6孔+逐级花费，用户一手）
+  [low] root.growth.jade.spiritCount  (srcs:0)
+        四种口径都有出处但互相不能换算；官方从不公布总数；需游戏内确认。
+  [low] root.growth.jade.spiritCount.fourReadings[i]  x2  (srcs:0)
+  [low] root.growth.accessory  (srcs:2)
+  [low] root.powerStandards  (srcs:1)
+        ⚠ 本表只能当量级参考：高段多为民工估算且已过时（游戏已开 160 级），低段（50~110）现已获第二份社区表印证量级（50万@50级 … 320万@110级），但**那份表的原始视频链接无法打开**（见下），只能算「社区口径趋于一致」，不能算严谨双源。社区实际上更认「本服排名分位」而非绝对战力阈值。请以游戏内实际体验为准，不要把本表当达标硬线。
+  [low] root.powerStandards.table[i] = 500000  x21  (srcs:0)
+  [low] root.powerStandards.raidRequirement.160.refinedByCommunity  (srcs:0)
+        ⚠ 该分档共 4 个来源，其中 3 个是农场域（白凡/123手游/森野），**只能算 1.5 源** → 本项维持 medium，不改原来的 3000~4600 万区间。
+  [low] root.resourceIncome.copper  (srcs:1)
+        ⚠ 仍无一手「逐项加总」明细贴。2026-10-18 新找到一条**官方**锚点（腾讯官网 2016-03）：「每天可免费招财 1 次……连续 10 次招财可获得大概 14 万多的铜币，再加上招财礼盒的奖励，差不多有 23 万铜币」★★ 修正（2026-10-18，外部检索发现我的错误）：原文里 23 万对应的是「**连续 10 次招财**（其中 9 次要花
+
+########## MEDIUM  共 37 条（折叠 28 组）##########
+  [medium] root.elemMechanics.capEvolution  (srcs:0)
+        两个年代的上限不同（10% → 117%），但**都严格服从同一个 ×5% 公式** → 说明不是谁算错，而是 2018→2024 之间游戏提高了上限（藏管系统上线是主因，藏管全一阶就贡献 90%）。
+  [medium] root.coefficientVerifications[i]  (srcs:2)
+  [medium] root.round4Verifications[i]  x2  (srcs:2)
+        与声称的「约 2390」吻合 → 高段秘卷数据本身可信；但碎片战力比从低段 9.5 掉到 0.63（15 倍差），所以「1 碎片 ≈ 9.5 战力」不能用于估算满级成本。
+  [medium] root.gameStatus.highestRaid  (srcs:1)
+        未找到 165/170 级团本。队伍实测「保底 3000 万，最高 4600 万」。**这是通关门槛，不是等级达标线。**
+  [medium] root.collectionBonus  (srcs:1)
+  [medium] root.growth.artifact  (srcs:3)
+        忍玉每级经验递增 → 忍玉边际收益递减；同档内建议平均升，不要单件猛冲。⚠ tiers 里的 powerPerYanYu（0.19/0.155/0.11）是历史拟合值，**已被 unitRates（0.12/0.05 实测）取代**，见 tierRateConflict。
+        ★ 本块含高置信子项: expFormula（忍玉经验公式，推 70/140/280 级全对） / refineConversion（60轮回=12.5生命/4.8攻击/3防御，0.00% 闭环）
+  [medium] root.growth.artifact.unitRates  (srcs:2)
+        单一来源（TapTap 2020-11 长文，含游戏内截图），但它给的**属性级数据能被独立验算**（见 refineConversion），且与另一份中华网 2020-11 的 56.73万/239万/41万 三数一致 → 至少是「同一份实测被两站采用」，不是随口写的。
+  [medium] root.growth.artifact.perLevelAttributes  (srcs:1)
+        「每级多 +1.44生命/+0.4攻击/+0.1防御，经验 +30（60忍玉）」—— 由此可推任意等级的属性与忍玉消耗，不必依赖任何表格。⚠ 小瑕疵：按 36+1.44(n−1) 算，要到约 77 级才达到「70 级后固定 146」，与原文「70级后」的说法差 7 级，疑作者取整或四舍五入所致，不影响量级。
+  [medium] root.growth.artifact.collectionBonusContamination  (srcs:2)
+  [medium] root.growth.spiritLevelCap  (srcs:2)
+        2 个独立作者（2019、2021）一致；第三份消耗表的分组边界与之一致（差 1 级是 0→N 计数方式），故「分组边界」这部分置信度可视为中偏高。
+  [medium] root.growth.spiritCostTable  (srcs:1)
+        已取到**三份独立视频的完整口述**（非二手摘要），逐条比对：绝大多数条目三源一致，仅「贝壳铜币」「蛤蟆龙铜币」「蜘蛛/蛤蟆吾郎」有细微出入，均已标注。重要发现：**乌鸦声望高于蛤蟆龙这个反常项，三份资料全部一致** → 说明它不是某一家抄错，而是源数据本身就如此（可能原始长图如此，或游戏确实这样设计）。⚠ 但这三份视频很可能都源自同一张社区长图，故只能算「
+  [medium] root.growth.talent.shura  (srcs:0)
+  [medium] root.growth.accessoryTiers  (srcs:1)
+        抗魔区间 14 档完整、单调递增，来自 2026-03 一份可读全文的表，内部一致性好。⚠「祝福」档下限 28000 与「封印」上限 27000 之间有空隙，属原表缺漏；云迹上限留空。
+  [medium] root.growth.jade.perGemTable[i] = 31.5  x9  (srcs:0)
+  [medium] root.growth.jade.inlayMechanics.mergeIsLoss  (srcs:0)
+        ★ **合成会亏攻击**。所以「勾玉平均升到 7 级就停」是理性的：把资源铺在多个 7 级上，比合成高等级更划算（对应本项目既有记录「3 颗 5 级 > 1 颗 6 级」）。
+  [medium] root.growth.jade.spiritCount.fourReadings[i]  (srcs:0)
+  [medium] root.growth.jade.colorMap  (srcs:2)
+  [medium] root.growth.jade.resourceBottleneck  (srcs:2)
+        花费数字来自用户一手观察（high）；但「10 周 1 个」的供给速率来自社区资料（medium），且通灵只数未确认，所以总天数只能是量级估计。
+  [medium] root.growth.jade.rules2.refineCapResolved = 30  (srcs:4)
+        三份 2020 年后资料一致 + 时间线能解释"冲突"双方各自的来源；但缺官方或游戏内一手确认。
+  [medium] root.growth.jade.rules2.refineGainPerLevel = 0.1  (srcs:2)
+        机制描述两源一致；但满级 300% 是按「每级 10% × 30 级」推的，无直接实测。
+  [medium] root.growth.tool  (srcs:1)
+  [medium] root.growth.accessory.decompositionSimulator.ratios.legendOverFine = 1.4  (srcs:0)
+  [medium] root.resourceIncome  (srcs:3)
+  [medium] root.resourceIncome.gold  (srcs:3)
+        零氪约 430/天（原估 400 + 官方确认的活跃度宝箱 +30）；月卡约 630/天（再 + 大福袋 100→150 的 +50）。基线 400/550 来自 4 源互证（2025-2026 各站），增量 +30/+50 来自**官方原文**，两者可信度不同：增量是硬的，基线是估的，所以区间仍给得较宽。
+        ★ 本块含高置信子项: officialDeltas（活跃度宝箱 +30 / 大福袋 +50，官方原文）
+  [medium] root.resourceIncome.stamina  (srcs:0)
+        硬机制：5 分钟恢复 1 点、上限 200 → 自然恢复 288/天；加一乐拉面 3 次（约 150）→ 约 460/天。
+  [medium] root.resourceIncome.reputation  (srcs:1)
+        小队突袭前 3 次（150 金）得 1260 声望 + 300 忍玉/次；免费次数仅 210 声望 + 50 忍玉 → 3 倍差
+  [medium] root.priorityOrder  (srcs:2)
+  [medium] root.inflation  (srcs:2)
+
