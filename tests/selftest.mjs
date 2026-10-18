@@ -87,17 +87,17 @@ ok('铜币收益必须带可核对的锚点（官方 2016 招财 ≈23 万/天�
 
 section('2b. 交叉验证后的置信度分级（2026-10-18 复核）')
 ok('属性系数有逐项置信度 perAttr', !!PD.attrWeights.perAttr && Object.keys(PD.attrWeights.perAttr).length === 7)
-ok('属性攻击/防御已升级为 medium（2026-10-18 首次找到明确来源）',
-  PD.attrWeights.perAttr.elemAtk.confidence === 'medium' &&
-  PD.attrWeights.perAttr.elemDef.confidence === 'medium' &&
+ok('★ 属性攻击/防御已升级为 high（2018贴吧实测表 + 2026抖音视频 双源）',
+  PD.attrWeights.perAttr.elemAtk.confidence === 'high' &&
+  PD.attrWeights.perAttr.elemDef.confidence === 'high' &&
   PD.attrWeights.perAttr.elemAtk.value === 6 &&
   PD.attrWeights.perAttr.elemDef.value === 10)
 ok('生命/攻击/暴击标为 high',
   ['hp', 'atk', 'crit'].every(k => PD.attrWeights.perAttr[k].confidence === 'high'))
-ok('防御标为 medium（唯一有游戏内闭环验证，但仅 2 源）',
-  PD.attrWeights.perAttr.def.confidence === 'medium', PD.attrWeights.perAttr.def.confidence)
-ok('抗暴标为 medium（有官方改动日志但缺直接算式）',
-  PD.attrWeights.perAttr.critResist.confidence === 'medium', PD.attrWeights.perAttr.critResist.confidence)
+ok('★ 防御已升级为 high（两次独立游戏内反查）',
+  PD.attrWeights.perAttr.def.confidence === 'high', PD.attrWeights.perAttr.def.confidence)
+ok('★ 抗暴已升级为 high（官方改动方向 + 改动后逐位验证）',
+  PD.attrWeights.perAttr.critResist.confidence === 'high', PD.attrWeights.perAttr.critResist.confidence)
 ok('通灵 +4 的可疑数字已撤下（power=null）',
   PD.growth.spiritAdvance.sweetSpots[0].power === null,
   String(PD.growth.spiritAdvance.sweetSpots[0].power))
@@ -694,6 +694,62 @@ section('11. 神器单价与勾玉冲突（本轮补搜）')
     j.colorMap.priorityConfirmedBy.length === 3)
 
   ok('dataConflicts2026 已含 9 条（新加勾玉两条）', PD.dataConflicts2026.length === 9)
+}
+
+/* ═══════════════════ 12. 贴吧技术贴（用户提供截图） ═══════════════════ */
+section('12. 贴吧三贴：系数全高 + 官方公式 + 战力补正')
+{
+  // ★ 七系数全部 high
+  const keys = ['hp', 'atk', 'def', 'crit', 'critResist', 'elemAtk', 'elemDef']
+  ok('★★ 七个基础系数全部为 high（项目首次）',
+    keys.every((k) => PD.attrWeights.perAttr[k].confidence === 'high'),
+    keys.map((k) => k + '=' + PD.attrWeights.perAttr[k].confidence).join(','))
+
+  // ★ 官方公式 ×5% 与 ÷20 恒等（现场验算）
+  const equiv = [20, 200, 1190, 2340].every((d) => Math.abs(d / 20 - d * 0.05) < 1e-9)
+  ok('★ 官方「×5%」与项目「÷20」数学恒等', equiv)
+  ok('★ 且同时复现两个年代的封顶（200→10%、2340→117%）',
+    Math.abs(200 * 0.05 - 10) < 1e-9 && Math.abs(2340 * 0.05 - 117) < 1e-9)
+  ok('★ 官方公式证据已入库且限定作用范围（只证明伤害公式，不给6/10背书）',
+    PD.elemMechanics.officialFormulaEvidence.confidence === 'high' &&
+    PD.elemMechanics.officialFormulaEvidence.scopeLimit.includes('不能'))
+
+  // ★ 图3 那张表必须能逐格复现
+  const tb = PD.tiebaEvidence.collectionBonus.verifiedTable
+  const r1 = tb.rows.washing100
+  const w = PD.attrWeights
+  ok('★ 贴吧表逐格复现：生命/攻击/防御/暴击/抗暴 全部对得上',
+    Math.abs(r1.hp * w.hp - tb.rows.powerNoBonus.hp) < 0.5 &&
+    Math.abs(r1.atk * w.atk - tb.rows.powerNoBonus.atk) < 0.5 &&
+    Math.abs(r1.def * w.def - tb.rows.powerNoBonus.def) < 0.5 &&
+    Math.abs(r1.crit * w.crit - tb.rows.powerNoBonus.crit) < 0.5 &&
+    Math.abs(r1.critResist * w.critResist - tb.rows.powerNoBonus.critResist) < 0.5)
+  ok('★ 含收集加成三格也复现（20526/20806/20227）',
+    Math.abs(r1.hp * w.hp * tb.rows.collectionBonus.hp - tb.rows.actualPower.hp) < 1 &&
+    Math.abs(r1.atk * w.atk * tb.rows.collectionBonus.atk - tb.rows.actualPower.atk) < 1 &&
+    Math.abs(r1.def * w.def * tb.rows.collectionBonus.def - tb.rows.actualPower.def) < 1)
+  ok('★ 贴吧表确认「暴击/抗暴不享受收集加成」',
+    tb.rows.collectionBonus.crit === '不加成' && tb.rows.collectionBonus.critResist === '不加成')
+
+  // ★ 战力补正
+  ok('★ 战力补正（406/324）已记录，且与符文按量级区分',
+    PD.elemCrossCheck.powerCorrectionResidual.value.includes('406') &&
+    PD.elemCrossCheck.powerCorrectionResidual.practicalAdvice.includes('几百点'))
+
+  // 属性伤害上限版本演进
+  ok('★ 属性伤害上限记为版本演进而非矛盾（200点10% → 2340点117%）',
+    PD.elemMechanics.capEvolution.y2018.needPoints === 200 &&
+    PD.elemMechanics.capEvolution.y2024.needPoints === 2340 &&
+    PD.elemMechanics.capEvolution.verdict.includes('不是谁算错'))
+  ok('★ 2018 那条「超过200也封顶」的争议已留痕',
+    PD.elemMechanics.capEvolution.disputed2018Cap.status.includes('争议未决'))
+
+  // OCR 诚实声明
+  ok('★ 官方截图标注为 OCR 读图、非逐字原文',
+    PD.tiebaEvidence.attrDamageTest.officialScreenshot.ocrCaveat.includes('不是逐字精确'))
+  ok('★ 三个贴吧来源标为 user-screenshot（抓取仍 403）',
+    ['tieba_attr_test', 'tieba_power_formula', 'tieba_collection_bonus']
+      .every((id) => PD.sources[id].verified === 'user-screenshot'))
 }
 
 /* ═════════════════════════════ 汇总 ═════════════════════════════ */
