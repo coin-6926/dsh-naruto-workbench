@@ -453,6 +453,45 @@ section('11. CLI')
   ok('--income 能算出天数', withIncome.stdout.includes('天') || withIncome.stdout.includes('不估算'))
 }
 
+// ─────────────────────────────────────────── 12. 部署契约（AGENTS.md / README / keywords）
+section('12. 部署契约可执行性')
+{
+  const agentsPath = join(ROOT, 'AGENTS.md')
+  ok('AGENTS.md 存在（agent 被丢链接时靠它部署）', existsSync(agentsPath))
+  const agents = existsSync(agentsPath) ? readFileSync(agentsPath, 'utf8') : ''
+  for (const kw of ['git clone https://github.com/coin-6926/dsh-naruto-workbench',
+    'dev_inject_plugin', 'dev_plugin_status', 'dist/naruto-workbench.html',
+    'node dist/naruto-cli.cjs --sample', 'huoyin.qq.com', '留空 = 未知']) {
+    ok('AGENTS.md 含关键指令「' + kw.slice(0, 34) + '」', agents.includes(kw))
+  }
+
+  // AGENTS.md 里写的数字必须与现实一致，否则会把后来的 agent 带偏
+  const cliSources = spawnSync(process.execPath, [join(DIST, 'naruto-cli.cjs'), '--sources'], { encoding: 'utf8' })
+  const mSrc = (cliSources.stdout || '').match(/共 (\d+) 条来源/)
+  const realSources = mSrc ? Number(mSrc[1]) : null
+  ok('AGENTS.md 提到的来源条数准确', realSources !== null && agents.includes(String(realSources) + ' 条'),
+    'CLI --sources = ' + realSources)
+
+  const cliSample = spawnSync(process.execPath, [join(DIST, 'naruto-cli.cjs'), '--sample'], { encoding: 'utf8' })
+  const mPw = (cliSample.stdout || '').match(/总战力（已填部分）：([\d.]+\s*[万亿]?)/)
+  const realPw = mPw ? mPw[1].trim() : null
+  ok('AGENTS.md 里示例总战力与实际一致', !!realPw && agents.includes(realPw.replace(/\s+/g, ' ')),
+    'CLI = ' + realPw)
+
+  // README 必须有一句话部署入口
+  const readme = readFileSync(join(ROOT, 'README.md'), 'utf8')
+  ok('README 有「丢给 agent」的部署一行', /部署 https:\/\/github\.com\/coin-6926\/dsh-naruto-workbench/.test(readme))
+  ok('README 链接到 AGENTS.md', readme.includes('AGENTS.md'))
+
+  // 包元数据要能被 dsh-plugin 这类关键词检索到
+  const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'))
+  ok('package.json keywords 含 dsh-plugin', Array.isArray(pkg.keywords) && pkg.keywords.includes('dsh-plugin'),
+    (pkg.keywords || []).join(','))
+  ok('package.json files 含 dist 与 src（clone 即可用）',
+    Array.isArray(pkg.files) && pkg.files.includes('dist') && pkg.files.includes('src'), (pkg.files || []).join(','))
+  ok('有 npm run test:all 一键跑三套测试', !!(pkg.scripts && pkg.scripts['test:all']))
+}
+
 // ─────────────────────────────────────────── 汇总
 console.log('\n' + '═'.repeat(58))
 if (fails.length === 0) {

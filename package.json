@@ -21,11 +21,20 @@
   "keywords": [
     "dsh",
     "dsh-plugin",
+    "dsh-plugin-naruto",
     "deepseek-harness",
+    "cordis",
+    "cordis-plugin",
     "naruto",
     "火影忍者",
+    "火影忍者手游",
     "战力",
-    "game-tool"
+    "power-calculator",
+    "game-tool",
+    "single-file-html",
+    "offline",
+    "cli",
+    "umd"
   ],
   "repository": {
     "type": "git",

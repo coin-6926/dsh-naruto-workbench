@@ -101,10 +101,17 @@ ok('抗暴标为 medium（有官方改动日志但缺直接算式）',
 ok('通灵 +4 的可疑数字已撤下（power=null）',
   PD.growth.spiritAdvance.sweetSpots[0].power === null,
   String(PD.growth.spiritAdvance.sweetSpots[0].power))
-ok('勾玉标为 unverified 且注明 2016 样本已过时',
-  PD.growth.jade.confidence === 'unverified' &&
-  String(PD.growth.jade.note).includes('2016'),
+ok('勾玉：旧 2016 表已降级，且明确说明不可再用于计算',
+  PD.growth.jade.confidence === 'low' &&
+  typeof PD.growth.jade.perLevelPowerDeprecated === 'string' &&
+  PD.growth.jade.perLevelPowerDeprecated.includes('勿再用于计算'),
   PD.growth.jade.confidence)
+ok('勾玉：1~9 级单颗表已收录且 9 行「战力÷攻击」全等于 3.5',
+  PD.growth.jade.perGemTable.length === 9 &&
+  PD.growth.jade.perGemTable.every((r) => Math.abs(r.power / r.atk - 3.5) < 1e-9))
+ok('勾玉：通灵端孔数矛盾已留痕（不冒充已知）',
+  typeof PD.growth.jade.slotsConflict === 'string' &&
+  PD.growth.jade.slots.equipmentTotal === 30)
 ok('数据源包含农场黑名单备注',
   !!PD.sources.farm_blacklist_note && String(PD.sources.farm_blacklist_note.note).includes('guotao606'))
 ok('所有 sourceIds 无悬空引用', (() => {

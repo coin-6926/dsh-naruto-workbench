@@ -2,9 +2,43 @@
 
 [![DeepSeek Harness](https://img.shields.io/badge/DSH-plugin-blue)](https://github.com/coin-6926/dsh-naruto-workbench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-116%20passed-brightgreen)](tests/selftest.mjs)
+[![tests](https://img.shields.io/badge/tests-293%20passed-brightgreen)](tests/)
+[![dsh-plugin](https://img.shields.io/badge/dsh--plugin-ready-blueviolet)](#-把这一行丢给你的-agent)
 
 一个挂在 **DeepSeek Harness** 里的战力工作台插件：填 16 板块战力面板 → 本地即时算 → 一键把结构化结论交给 agent 深入分析。
+
+> 也能**脱离 DSH 独立运行**：单文件 HTML（双击即用）、Node CLI、UMD 库。
+
+---
+
+## 🤖 把这一行丢给你的 agent
+
+```
+部署 https://github.com/coin-6926/dsh-naruto-workbench —— 按 AGENTS.md 执行
+```
+
+`AGENTS.md` 是写给 agent 的**部署契约**：它会自己判断你要「单文件 HTML / CLI / DSH 插件」三条路径里的哪一条，
+按步骤装配，并**带着可验证的输出**回报（自检项数、产物体积、CLI 实际算出的战力）。
+不需要你解释任何背景。
+
+### 三条路径各需要什么
+
+| 你想要的 | 路径 | 需要 |
+|---|---|---|
+| 打开就能用、不想装东西 | **单文件 HTML**（`dist/naruto-workbench.html`，112 KB） | 只要浏览器 |
+| 在终端里算 / 接脚本 | **Node CLI**（`node dist/naruto-cli.cjs`） | Node ≥ 10 |
+| 让 agent 在对话里查数 | **DSH 插件**（3 个 agent 工具） | DSH（有 super-injector 则免重启） |
+
+### 手动安装（不想让 agent 动手时）
+
+```bash
+git clone https://github.com/coin-6926/dsh-naruto-workbench.git
+cd dsh-naruto-workbench
+node tests/selftest.mjs        # 期望：通过 136 项，失败 0 项
+```
+
+- **只想用工具**：双击 `dist/naruto-workbench.html`（已提交，无需构建）
+- **装成插件**：见 [AGENTS.md](AGENTS.md) §4，或直接 `dev_inject_plugin dir=<绝对路径>`
 
 **核心思路**：agent 已经有联网与推理能力，缺的是**你的真实面板数据**和**可信的数值依据**。
 所以插件负责"持有数据 + 确定性计算 + 提供带来源的数值表"，agent 负责"解释 + 联网查最新版本 + 个性化建议"。
