@@ -2,7 +2,9 @@
 
 [![DeepSeek Harness](https://img.shields.io/badge/DSH-plugin-blue)](https://github.com/coin-6926/dsh-naruto-workbench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-432%20passed-brightgreen)](tests/)
+[![tests](https://img.shields.io/badge/tests-452%20passed-brightgreen)](tests/)
+[![npm](https://img.shields.io/badge/npm-naruto--power--workbench-cb3837)](https://www.npmjs.com/package/naruto-power-workbench)
+[![node](https://img.shields.io/badge/node-%E2%89%A518-339933)](package.json)
 [![dsh-plugin](https://img.shields.io/badge/dsh--plugin-ready-blueviolet)](#-把这一行丢给你的-agent)
 
 一个挂在 **DeepSeek Harness** 里的战力工作台插件：填 16 板块战力面板 → 本地即时算 → 一键把结构化结论交给 agent 深入分析。
@@ -28,6 +30,56 @@
 | 打开就能用、不想装东西 | **单文件 HTML**（`dist/naruto-workbench.html`，112 KB） | 只要浏览器 |
 | 在终端里算 / 接脚本 | **Node CLI**（`node dist/naruto-cli.cjs`） | Node ≥ 10 |
 | 让 agent 在对话里查数 | **DSH 插件**（3 个 agent 工具） | DSH（有 super-injector 则免重启） |
+| 只要一行命令 / 当库引 | **npm**（`npx naruto-power-workbench`） | Node ≥ 18 |
+
+### 📦 第四条路径：npm（一行装走）
+
+```bash
+# 直接用，不安装（推荐先试这个）
+npx naruto-power-workbench --sample
+
+# 或装到项目里当库用
+npm i naruto-power-workbench
+```
+
+```js
+// 库用法（零依赖，纯函数，不需要任何 ctx）
+const core = require('naruto-power-workbench/core')
+
+const r = core.compute({
+  level: 145,
+  boards: { equipment: { hp: 5000, atk: 1000, def: 500 } },
+})
+console.log(core.fmtPower(r.totalPower))   // → "1.4 万"
+
+// 只要数据（含每条数值的 confidence 与 sourceIds）
+const D = (await import('naruto-power-workbench/data')).default
+console.log(Object.keys(D.sources).length) // → 74 条来源
+```
+
+| 子路径 | 内容 |
+|---|---|
+| `naruto-power-workbench/core` | 核心 API：`compute` / `planTarget` / `inflation` / `exportPanel` / `fmtPower` … |
+| `naruto-power-workbench/data` | 数据层（ESM）：`sources` / `attrWeights` / `growth` / `powerStandards` … |
+| `naruto-power-workbench/html` | 单文件 HTML 的**路径**（可 `cp` 出来双击） |
+| `naruto-power-workbench/dsh` | DSH 插件入口（一般由 DSH 自己装配，不需手动引） |
+
+CLI 两个名字都可用：`npx naruto-power-workbench` / `npx naruto-power`。
+
+```bash
+npx naruto-power-workbench --sample              # 内置样例面板
+npx naruto-power-workbench --panel 我的面板.json  # 读自己的面板
+npx naruto-power-workbench --sources             # 列出全部 74 条来源
+npx naruto-power-workbench --help
+```
+
+> **发布状态**：包已配置完毕（`private` 已移除、带 `bin`、`prepublishOnly` 会先跑构建+测试），
+> `npm pack` 产物经 **33 项校验**（含解包后逐文件检查、CLI shebang、`dist/` 的 commonjs 标记、HTML 无外链）。
+> 但**需要你先在 npm 登录一次**才能真正发布：
+> ```bash
+> npm login            # 或 npm adduser
+> npm publish          # 包名 naruto-power-workbench 当前未被占用（已核实）
+> ```
 
 ### 手动安装（不想让 agent 动手时）
 

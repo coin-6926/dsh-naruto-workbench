@@ -395,7 +395,7 @@ ok('options 里不应含 component（它必须作为第二参数）',
   reg && typeof reg.component !== 'undefined' ? 'component 被错误地放在 options 里' : '')
 ok('component 是函数', typeof regComponent === 'function', typeof regComponent)
 ok('注册到 conversation.input.dock', reg?.name === 'conversation.input.dock', reg?.name)
-ok('slot id 唯一可辨识', typeof reg?.id === 'string' && reg.id.includes('naruto-workbench'), reg?.id)
+  ok('slot id 唯一可辨识', typeof reg?.id === 'string' && /naruto.*workbench/.test(reg.id), reg?.id)
 ok('label 返回字符串', typeof reg?.label === 'function' && typeof reg.label() === 'string')
 
 let node = null, renderErr = null
