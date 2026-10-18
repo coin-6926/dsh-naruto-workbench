@@ -117,11 +117,15 @@ function runInBrowser(browser, extraArgs) {
   const attempts = [
     ['--virtual-time-budget=8000'],
     ['--virtual-time-budget=25000'],
+    ['--virtual-time-budget=45000'],
   ]
   let last = null
   for (let i = 0; i < attempts.length; i++) {
     last = runOnce(browser, attempts[i], extraArgs)
-    if (last.ok && !(last.data && last.data.filled === 0)) return last
+    // 「有值」的判定要同时看两个信号：填了几格 + 合计格是否算出来。
+    // 之前只查 filled===0，漏掉了「表单填了但渲染没跑完 → 合计仍是 —」这种情形（Edge 上出现过）。
+    const rendered = last.ok && last.data && last.data.filled > 0 && last.data.total && last.data.total !== '—'
+    if (rendered) return last
     // 明确失败（页面崩了）就不用再试了
     if (!last.ok && /no NarutoPower|core\.compute missing/.test(last.why || '')) return last
     if (i < attempts.length - 1) {

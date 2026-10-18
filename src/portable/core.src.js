@@ -365,6 +365,9 @@ function createCore(DATA) {
     var currentPower = sanitizeNumber(o.currentPower, 0) || 0
     var targetPower = sanitizeNumber(o.targetPower, null)
     var level = sanitizeNumber(o.level, null)
+    // ★ 与 validate() 保持同一套等级范围校验：planTarget 是直接收参的，
+    //   不走 validate，所以这里必须自己挡一次，否则 level:-1 会被原样返回给 UI。
+    if (level !== null && (level < 1 || level > 300)) level = null
     var perDay = sanitizeNumber(o.incomePerDay, null)
     var std = nearestStandard(level)
 
