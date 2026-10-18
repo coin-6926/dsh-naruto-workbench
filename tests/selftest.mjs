@@ -649,6 +649,53 @@ section('10. 官方公告定向检索结果')
     PD.cautions.some((c) => c.includes('官方公告已定向检索过')))
 }
 
+/* ═══════════════════ 11. 2026-10-18 第二轮补搜 ═══════════════════ */
+section('11. 神器单价与勾玉冲突（本轮补搜）')
+{
+  const a = PD.growth.artifact
+
+  // ★ 轮回换算必须能算回 56.73 万
+  const hp = 18766 * 3, atk = 5321 * 3, def = 1626 * 3
+  const needLun = hp * (60 / 12.5) + atk * (60 / 4.8) + def * (60 / 3)
+  ok('★ 轮回换算闭环：折算回去 = 567,328，与声称 567,300 偏差 0.00%',
+    Math.abs(needLun - 567300) < 1500, needLun.toFixed(0))
+
+  ok('★ 忍玉战力率已实测确定（1~140 级 0.12 / 140~280 级 0.05）',
+    a.unitRates.yanYu.tier1_140.value === 0.12 &&
+    a.unitRates.yanYu.tier140_280.value === 0.05)
+  ok('★ 轮回石战力率恒定 0.438 且可反算',
+    a.unitRates.lunHuiShi.value === 0.438,
+    String(a.unitRates.lunHuiShi.value))
+  ok('★ 旧分段拟合率已明确标注被取代',
+    a.tierRateConflict.action.includes('不要再用 tiers.powerPerYanYu') &&
+    a.note.includes('已被 unitRates'))
+
+  // 收集加成污染的定量校核
+  const attrPower = 93830 * 1 + 26604 * 3.5 + 8130 * 11.6
+  const ratio = 410000 / attrPower
+  ok('★ 收集加成污染可复现（属性直算 28.1 万 vs 声称 41 万 → 约 +46%）',
+    Math.abs(attrPower - 281252) < 50 && Math.abs(ratio - 1.458) < 0.01,
+    'attr=' + Math.round(attrPower) + ' ratio=' + ratio.toFixed(3))
+  ok('★ 收集加成污染已写进 cautions（影响所有战力数字解读）',
+    PD.cautions.some((c) => c.includes('都含收集加成')) &&
+    PD.cautions.some((c) => c.includes('1~140 级 0.12')))
+
+  // 勾玉两条新冲突
+  const j = PD.growth.jade
+  ok('★ 勾玉每件槽位 30 vs 36 冲突已留痕，且装备端降为 low',
+    j.slots.equipmentTotalAlt.value === 36 && j.slots.confidence === 'low')
+  ok('★ 勾玉精炼上限 30 vs 20 冲突已留痕',
+    j.rules2.refineCapConflict.a.value === 30 && j.rules2.refineCapConflict.b.value === 20)
+  ok('★ 精炼每级 +10%/满级 200% 记为单源线索（不用于计算）',
+    j.rules2.refineGainPerLevel.value === 0.1 &&
+    j.rules2.refineGainPerLevel.full === 2 &&
+    j.rules2.refineGainPerLevel.confidence === 'low')
+  ok('★ 勾玉优先级「黄>青>紫」获第 3 源确认',
+    j.colorMap.priorityConfirmedBy.length === 3)
+
+  ok('dataConflicts2026 已含 9 条（新加勾玉两条）', PD.dataConflicts2026.length === 9)
+}
+
 /* ═════════════════════════════ 汇总 ═════════════════════════════ */
 
 console.log(`\n${'═'.repeat(62)}`)

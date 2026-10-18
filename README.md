@@ -2,7 +2,7 @@
 
 [![DeepSeek Harness](https://img.shields.io/badge/DSH-plugin-blue)](https://github.com/coin-6926/dsh-naruto-workbench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-323%20passed-brightgreen)](tests/)
+[![tests](https://img.shields.io/badge/tests-345%20passed-brightgreen)](tests/)
 [![dsh-plugin](https://img.shields.io/badge/dsh--plugin-ready-blueviolet)](#-把这一行丢给你的-agent)
 
 一个挂在 **DeepSeek Harness** 里的战力工作台插件：填 16 板块战力面板 → 本地即时算 → 一键把结构化结论交给 agent 深入分析。
@@ -34,7 +34,7 @@
 ```bash
 git clone https://github.com/coin-6926/dsh-naruto-workbench.git
 cd dsh-naruto-workbench
-node tests/selftest.mjs        # 期望：通过 166 项，失败 0 项
+node tests/selftest.mjs        # 期望：通过 177 项，失败 0 项
 ```
 
 - **只想用工具**：双击 `dist/naruto-workbench.html`（已提交，无需构建）
