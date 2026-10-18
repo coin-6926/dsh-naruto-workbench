@@ -61,10 +61,10 @@ ok('成长曲线：神器 3 档（70/140/280）',
 ok('成长曲线：通灵进阶有 sweetSpots（最优节点）',
   Array.isArray(PD.growth.spiritAdvance.sweetSpots) && PD.growth.spiritAdvance.sweetSpots.length >= 2)
 ok('成长曲线：勾玉体现实测数据', PD.growth.jade.bodyTotals.length === 2)
-ok('战力标准表覆盖 50~170 级且严格单调递增',
-  PD.powerStandards.table.length === 21 &&
+ok('战力标准表覆盖 50~175 级且严格单调递增',
+  PD.powerStandards.table.length === 22 &&
   PD.powerStandards.table[0].level === 50 &&
-  PD.powerStandards.table[PD.powerStandards.table.length - 1].level === 170 &&
+  PD.powerStandards.table[PD.powerStandards.table.length - 1].level === 175 &&
   PD.powerStandards.table.every((r, i) => i === 0 || r.power > PD.powerStandards.table[i - 1].power),
   `${PD.powerStandards.table.length} 行, 首行 ${PD.powerStandards.table[0].level} 级, 末行 ${PD.powerStandards.table[PD.powerStandards.table.length - 1].level} 级`)
 ok('战力标准表标为低置信且带诚实声明',
@@ -549,11 +549,29 @@ section('9. 第四轮数据（能算的就不信二手表）')
     typeof PD.growth.artifact.powerColumnUnresolvable.verdict === 'string' &&
     PD.growth.artifact.powerColumnUnresolvable.verdict.includes('不是唯一解'))
 
-  ok('175 级只记为未确证信号（不得据此改表）',
-    PD.gameStatus.possibleCap175.value === 175 &&
-    PD.gameStatus.possibleCap175.confidence === 'unverified' &&
-    PD.gameStatus.levelCap.value === 170,
-    `cap=${PD.gameStatus.levelCap.value}, 175信号=${PD.gameStatus.possibleCap175.confidence}`)
+  ok('★ 等级上限已由官方原文确认为 175（不再是未确证信号）',
+  PD.gameStatus.levelCap.value === 175 &&
+  PD.gameStatus.levelCap.confidence === 'high' &&
+  PD.gameStatus.levelCap.officialQuote.includes('175') &&
+  PD.gameStatus.levelCap.sourceIds.includes('official_20260910'),
+  `cap=${PD.gameStatus.levelCap.value}, ${PD.gameStatus.levelCap.confidence}`)
+ok('★ 官方原文可读（能力已固化：tools/fetch-official.mjs）',
+  !!(PD.sources.official_api_method && /searchNews\.php/.test(PD.sources.official_20260910.apiUrl)))
+ok('★ 装备进阶 89 阶与强化 +59 是两个维度（旧冲突已解决）',
+  PD.growth.equipment.advanceTiers.value === 89 &&
+  PD.growth.equipment.advanceTiers.confidence === 'high' &&
+  PD.growth.equipment.maxEnhance === 59)
+ok('★ 修罗天赋新增 25~30 阶已按官方原文记录',
+  PD.growth.talent.shuraTiersOfficial.addedTiers.length === 6 &&
+  PD.growth.talent.shuraTiersOfficial.addedTiers[5] === 30)
+ok('★ 金币日收益按官方增量上调（零氪 +30 / 月卡 +30+50）',
+  PD.resourceIncome.gold.freeToPlay === 430 &&
+  PD.resourceIncome.gold.monthlyCard === 630 &&
+  PD.resourceIncome.gold.officialDeltas.effect.activityChest === 30 &&
+  PD.resourceIncome.gold.officialDeltas.effect.bigFortuneBag === 50,
+  PD.resourceIncome.gold.freeToPlay + '/' + PD.resourceIncome.gold.monthlyCard)
+ok('★ 官方金句逐字留存（可核对）',
+  PD.gameStatus.levelCap.officialQuote === '角色等级上限提升至175级。装备等级相应提升，装备进阶提升至89阶。')
 
   ok('秘卷碎片战力比随等级递减已记录（9.5 → 0.63）',
     PD.growth.scroll.fragmentDecay.lowTier.rate === 9.5 &&
