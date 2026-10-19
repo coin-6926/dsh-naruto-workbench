@@ -491,10 +491,20 @@ section('8. 跨端一致性（client 算法 vs host 算法）')
     for (const id of C_BOARDS) boards[id] = one
 
     // client 算法（与 client.js 里 boardPower 同构）
-    const cBoardPower = (attrs, bonusPct) => {
+    // ★ 2026-10-19 与 client.js / portable core 同步：7 板块不产 暴击/抗暴/属攻/属防
+    const C_FORBID = (function () {
+      const m = {}
+      for (const b of ['equipment', 'jade', 'spirit', 'artifact', 'scroll', 'talent', 'talent_shura']) {
+        m[b] = new Set(['crit', 'critResist', 'elemAtk', 'elemDef'])
+      }
+      return m
+    })()
+    const cBoardPower = (attrs, bonusPct, boardId) => {
+      const forb = boardId ? C_FORBID[boardId] : null
       let p = 0
       for (const a of [{ id: 'hp', w: 1 }, { id: 'atk', w: 3.5 }, { id: 'def', w: 11.6 }, { id: 'crit', w: 6 },
         { id: 'critResist', w: 10 }, { id: 'elemAtk', w: 6 }, { id: 'elemDef', w: 10 }]) {
+        if (forb && forb.has(a.id)) continue
         const v = Number(attrs?.[a.id])
         if (!Number.isFinite(v) || v <= 0) continue
         const applyCb = (a.id === 'hp' || a.id === 'atk' || a.id === 'def')
@@ -504,7 +514,7 @@ section('8. 跨端一致性（client 算法 vs host 算法）')
       return p
     }
     let clientTotal = 0
-    for (const id of C_BOARDS) clientTotal += cBoardPower(boards[id], cbPct)
+    for (const id of C_BOARDS) clientTotal += cBoardPower(boards[id], cbPct, id)
     clientTotal = Math.round(clientTotal)
 
     const hostRes = await tools.naruto_analyze.execute({ panel: { boards, collectionBonus: cbFrac } })
@@ -513,14 +523,15 @@ section('8. 跨端一致性（client 算法 vs host 算法）')
       `client=${clientTotal} host=${hostRes.totalPower} 差=${clientTotal - hostRes.totalPower}`)
 
     const hostBy = Object.fromEntries((hostRes.boards || []).map(b => [b.boardId, b.power]))
-    const mism = C_BOARDS.filter(id => Math.round(cBoardPower(boards[id], cbPct)) !== Math.round(hostBy[id] || 0))
+    const mism = C_BOARDS.filter(id => Math.round(cBoardPower(boards[id], cbPct, id)) !== Math.round(hostBy[id] || 0))
     ok('16 个板块逐一相等', mism.length === 0,
-      mism.map(id => `${id}: client=${Math.round(cBoardPower(boards[id], cbPct))} host=${Math.round(hostBy[id])}`).join(', '))
+      mism.map(id => `${id}: client=${Math.round(cBoardPower(boards[id], cbPct, id))} host=${Math.round(hostBy[id])}`).join(', '))
 
     // 收集加成的边界：暴击不吃加成
+    // ★ 2026-10-19 注意：equipment 不产暴击（会被约束剔除），所以这里必须用 accessory
     const critOnly = { crit: 1000 }
-    const c2 = cBoardPower(critOnly, { crit: 100, hp: 100 })
-    const r2 = await tools.naruto_analyze.execute({ panel: { boards: { equipment: critOnly }, collectionBonus: { crit: 1.0, hp: 1.0 } } })
+    const c2 = cBoardPower(critOnly, { crit: 100, hp: 100 }, 'accessory')
+    const r2 = await tools.naruto_analyze.execute({ panel: { boards: { accessory: critOnly }, collectionBonus: { crit: 1.0, hp: 1.0 } } })
     ok('收集加成不作用于暴击（双端一致且=6000）',
       Math.round(c2) === r2.totalPower && r2.totalPower === 6000,
       `client=${Math.round(c2)} host=${r2.totalPower}`)

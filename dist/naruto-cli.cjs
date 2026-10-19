@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*!
  * naruto-workbench CLI
- * 生成时间 2026-10-19T02:59:39.983Z
+ * 生成时间 2026-10-19T03:31:21.308Z
  * 本文件由 tools/build-portable.mjs 自动生成，请勿手改。
  */
 /* eslint-disable */
@@ -49,26 +49,28 @@ var CORE = loadCore()
 var SAMPLE = {
   level: 145,
   targetPower: 12000000,
-  collectionBonus: { hp: 0.6, atk: 0.6, def: 0.6 },
+  // ★ 与 lib/client.js 的「载入示例」**同一份数据**（core 把 >1 的值当百分数）
+  collectionBonus: { hp: 28, atk: 22, def: 20 },
   boards: {
-    equipment: { hp: 420000, atk: 98000, def: 38000, crit: 32000, critResist: 26000 },
-    jade: { hp: 260000, atk: 62000, def: 24000, crit: 21000, critResist: 18000 },
-    accessory: { hp: 340000, atk: 82000, def: 30000, crit: 26000, critResist: 22000 },
-    artifact: { hp: 180000, atk: 44000, def: 17000, crit: 14000, critResist: 12000 },
-    tool_body: { hp: 300000, atk: 72000, def: 26000, crit: 22000, critResist: 19000 },
-    spirit: { hp: 220000, atk: 54000, def: 20000, crit: 16000, critResist: 14000 },
-    tool_museum: { hp: 150000, atk: 36000, def: 14000, crit: 11000, critResist: 9000 },
-    ninja_insight: { hp: 120000, atk: 30000, def: 12000, crit: 9000, critResist: 8000 },
-    bond_card: { hp: 60000, atk: 15000, def: 6000, crit: 5000, critResist: 4000 },
-    title: { hp: 40000, atk: 10000, def: 4000, crit: 3000, critResist: 3000 },
-    scroll: { hp: 50000, atk: 12000, def: 5000, crit: 4000, critResist: 3000 },
-    avatar_frame: { hp: 30000, atk: 8000, def: 3000, crit: 2500, critResist: 2000 },
-    talent: { hp: 70000, atk: 18000, def: 7000, crit: 5500, critResist: 4500 },
-    talent_shura: { hp: 50000, atk: 13000, def: 5000, crit: 4000, critResist: 3500 },
-    rune: { hp: 60000, atk: 15000, def: 6000, crit: 5000, critResist: 4000 },
-    costume: { hp: 35000, atk: 9000, def: 3500, crit: 2800, critResist: 2200 },
+    equipment: { hp: 676550, atk: 56379, def: 27062 },
+    accessory: { hp: 636137, atk: 53011, def: 25445, crit: 16964, critResist: 10602, elemAtk: 6361, elemDef: 6361 },
+    spirit: { hp: 549696, atk: 45808, def: 21988 },
+    jade: { hp: 422844, atk: 35237, def: 16914 },
+    artifact: { hp: 359417, atk: 29952, def: 14377 },
+    tool_body: { hp: 299358, atk: 24947, def: 11974, crit: 7983, critResist: 4989, elemAtk: 2994, elemDef: 2994 },
+    tool_museum: { hp: 224519, atk: 18710, def: 8981, crit: 5987, critResist: 3742, elemAtk: 2245, elemDef: 2245 },
+    ninja_insight: { hp: 205809, atk: 17151, def: 8232, crit: 5488, critResist: 3430, elemAtk: 2058, elemDef: 2058 },
+    bond_card: { hp: 168389, atk: 14032, def: 6736, crit: 4490, critResist: 2806, elemAtk: 1684, elemDef: 1684 },
+    title: { hp: 93550, atk: 7796, def: 3742, crit: 2495, critResist: 1559, elemAtk: 935, elemDef: 935 },
+    scroll: { hp: 76112, atk: 6343, def: 3044 },
+    avatar_frame: { hp: 52388, atk: 4366, def: 2096, crit: 1397, critResist: 873, elemAtk: 524, elemDef: 524 },
+    talent: { hp: 295991, atk: 24666, def: 11840 },
+    talent_shura: { hp: 126853, atk: 10571, def: 5074 },
+    rune: { hp: 130969, atk: 10914, def: 5239, crit: 3493, critResist: 2183, elemAtk: 1310, elemDef: 1310 },
+    costume: { hp: 74840, atk: 6237, def: 2994, crit: 1996, critResist: 1247, elemAtk: 748, elemDef: 748 },
   },
 }
+
 
 function parseArgs(argv) {
   var o = { _: [] }

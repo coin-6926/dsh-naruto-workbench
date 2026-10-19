@@ -120,9 +120,19 @@ section('3. 三端一致性（portable core vs client vs host）')
   ok('client 与 portable core 属性权重一致', weightDrift.length === 0, weightDrift.join(', '))
 
   // client 算法复刻（与 client.js 的 boardPower 同构）
-  const clientBoard = (attrs, bonusPct) => {
+  // client 算法复刻（与 client.js 的 boardPower 同构）
+  // ★ 2026-10-19 加入板块属性约束：7 个板块不产 暴击/抗暴/属攻/属防
+  const FORBIDDEN_C = (function () {
+    const map = {}
+    const c = CORE.DATA.boardAttrConstraints && CORE.DATA.boardAttrConstraints.hpAtkDefOnly
+    if (c) for (const b of c.boards) map[b] = new Set(c.forbiddenAttrs)
+    return map
+  })()
+  const clientBoard = (attrs, bonusPct, boardId) => {
+    const forb = boardId ? FORBIDDEN_C[boardId] : null
     let p = 0
     for (const a of CORE.ATTRS) {
+      if (forb && forb.has(a.id)) continue
       const v = Number(attrs[a.id])
       if (!Number.isFinite(v) || v <= 0) continue
       const applyCb = ['hp', 'atk', 'def'].includes(a.id)
@@ -133,7 +143,7 @@ section('3. 三端一致性（portable core vs client vs host）')
   }
   const cbPct = { hp: 60, atk: 60, def: 60 }
   let clientTotal = 0
-  for (const b of CORE.BOARDS) clientTotal += clientBoard(SAMPLE.boards[b.id], cbPct)
+  for (const b of CORE.BOARDS) clientTotal += clientBoard(SAMPLE.boards[b.id], cbPct, b.id)
   clientTotal = Math.round(clientTotal)
 
   const portTotal = CORE.compute(SAMPLE).totalPower
@@ -156,7 +166,7 @@ section('3. 三端一致性（portable core vs client vs host）')
   let rowMismatch = 0
   for (const b of CORE.BOARDS) {
     const row = portRows.find((r) => r.boardId === b.id)
-    const expect = Math.round(clientBoard(SAMPLE.boards[b.id], cbPct))
+    const expect = Math.round(clientBoard(SAMPLE.boards[b.id], cbPct, b.id))
     if (!row || row.power !== expect) rowMismatch++
   }
   ok('16 个板块逐一相等', rowMismatch === 0, rowMismatch + ' 个不一致')
@@ -272,7 +282,7 @@ section('6. 计算正确性')
 
   const withCb = CORE.compute({ boards: { equipment: { hp: 1000 } }, collectionBonus: { hp: 0.5 } })
   ok('收集加成 hp 50% → 1500', withCb.totalPower === 1500, String(withCb.totalPower))
-  const cbOnCrit = CORE.compute({ boards: { equipment: { crit: 1000 } }, collectionBonus: { crit: 0.5 } })
+  const cbOnCrit = CORE.compute({ boards: { accessory: { crit: 1000 } }, collectionBonus: { crit: 0.5 } })
   ok('收集加成不作用于暴击', cbOnCrit.totalPower === 6000, String(cbOnCrit.totalPower))
   const pctInput = CORE.compute({ boards: { equipment: { hp: 1000 } }, collectionBonus: { hp: 50 } })
   ok('收集加成填 50 自动当 50% 处理', pctInput.totalPower === 1500, String(pctInput.totalPower))

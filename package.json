@@ -74,13 +74,14 @@
     "test:browser": "node tests/browser.e2e.mjs",
     "test:robust": "node tests/robustness.test.mjs",
     "test:stress": "node tests/stress.test.mjs",
-    "test:all": "node tests/selftest.mjs && node tests/portable.test.mjs && node tests/robustness.test.mjs && node tests/stress.test.mjs && node tests/browser.e2e.mjs",
+    "test:all": "node tests/selftest.mjs && node tests/portable.test.mjs && node tests/robustness.test.mjs && node tests/stress.test.mjs && node tests/ui-constraint.test.mjs && node tests/browser.e2e.mjs",
     "cli": "node dist/naruto-cli.cjs",
     "official:get": "node tools/fetch-official.mjs",
     "official:search": "node tools/search-official.mjs",
     "prepack": "node tools/build-portable.mjs",
     "prepublishOnly": "node tools/build-portable.mjs && node tests/selftest.mjs && node tests/portable.test.mjs",
-    "verify:pack": "node tools/verify-pack.mjs"
+    "verify:pack": "node tools/verify-pack.mjs",
+    "test:ui": "node tests/ui-constraint.test.mjs"
   },
   "dsh": {
     "bundle": {

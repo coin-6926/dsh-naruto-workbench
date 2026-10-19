@@ -88,6 +88,34 @@ function createCore(DATA) {
   // ───────────────────────────────── 数据视图
 
   var BOARDS = Array.isArray(DATA.boards) ? DATA.boards.slice() : []
+  /**
+   * ★ 2026-10-19 板块属性约束（用户一手口径）
+   * 装备/勾玉/通灵/神器/密卷/天赋/修罗天赋 **不产** 暴击/抗暴/属性攻防。
+   * 违规填入的值一律**不计入战力**，并给出 warning —— 而不是悄悄算进去。
+   */
+  var CONSTRAINTS = DATA.boardAttrConstraints || null
+  var FORBIDDEN_BY_BOARD = (function () {
+    var map = {}
+    if (!CONSTRAINTS || !CONSTRAINTS.hpAtkDefOnly) return map
+    var c = CONSTRAINTS.hpAtkDefOnly
+    for (var i = 0; i < c.boards.length; i++) map[c.boards[i]] = c.forbiddenAttrs.slice()
+    return map
+  })()
+  /** 返回该板块被违规填写的属性列表 */
+  function forbiddenIn(boardId, attrs) {
+    var bad = []
+    var forb = FORBIDDEN_BY_BOARD[boardId]
+    if (!forb || !attrs) return bad
+    for (var i = 0; i < forb.length; i++) {
+      var k = forb[i]
+      var val = attrs[k]
+      if (val !== undefined && val !== null && val !== '' && !(typeof val === 'number' && !isFinite(val))) {
+        var n = Number(val)
+        if (isFinite(n) && n !== 0) bad.push(k)
+      }
+    }
+    return bad
+  }
   var ATTRS = Array.isArray(DATA.boardAttrs) ? DATA.boardAttrs.slice() : []
   var ATTR_KEYS = []
   for (var _i = 0; _i < ATTRS.length; _i++) ATTR_KEYS.push(ATTRS[_i].id)
@@ -229,10 +257,23 @@ function createCore(DATA) {
     var rows = []
     var total = 0
     var filled = 0
+    var constraintWarnings = []
 
     for (var i = 0; i < BOARDS.length; i++) {
       var b = BOARDS[i]
       var attrs = panel.boards[b.id]
+      // ★ 剔除该板块不该有的属性（不静默计入）
+      var badAttrs = forbiddenIn(b.id, attrs)
+      if (badAttrs.length && attrs) {
+        var cleaned = {}
+        for (var ck in attrs) {
+          if (Object.prototype.hasOwnProperty.call(attrs, ck) && badAttrs.indexOf(ck) === -1) cleaned[ck] = attrs[ck]
+        }
+        attrs = cleaned
+        constraintWarnings.push(
+          b.name + '：已忽略 ' + badAttrs.length + ' 个该板块不产出的属性（' + badAttrs.join('/') + '）',
+        )
+      }
       var isFilled = !!attrs && safeKeys(attrs).length > 0
       var power = isFilled ? boardPower(attrs, bonus) : 0
       if (!isFinite(power) || power < 0) power = 0
@@ -273,7 +314,8 @@ function createCore(DATA) {
       level: panel.level,
       targetPower: panel.targetPower,
       collectionBonus: bonus,
-      warnings: v.warnings,
+      warnings: (v.warnings || []).concat(constraintWarnings),
+      constraintWarnings: constraintWarnings,
       errors: v.errors,
     }
   }
