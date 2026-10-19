@@ -186,7 +186,7 @@ dev_plugin_status
 3. 建链接（Windows 用 junction，需管理员或开发者模式）：
 
    ```powershell
-   New-Item -ItemType Junction -Path "$HOME\.dsh\profiles\web\node_modules\@dsh-external\naruto-workbench" -Target "<绝对路径>"
+   New-Item -ItemType Junction -Path "$HOME\.dsh\profiles\web\node_modules\naruto-power-workbench" -Target "<绝对路径>"
    ```
 
    ```bash
@@ -304,5 +304,5 @@ src/portable/ui.src.html   单文件 HTML 模板
 tools/build-portable.mjs ★ 把上面两个打包成 dist/
 dist/                    ★ 构建产物（已提交，clone 即可用）
 docs/DATA-SOURCES.md     ★ 数据来源与置信度审计（回答数值前必读）
-tests/                   selftest(250) / portable(157) / robustness(37) / stress(8) / browser.e2e(11)
+tests/                   selftest(250) / portable(157) / robustness(42) / stress(8) / browser.e2e(11)
 ```

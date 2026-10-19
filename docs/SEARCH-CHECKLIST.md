@@ -277,7 +277,7 @@ npm run test:all          # 三套 323 项，必须失败 0
 |---|---|
 | 置信度记录点合计 | 见数据层实时统计（本清单由脚本核对） |
 | 来源条目 | 74 |
-| cautions | 39 |
+| cautions | 37 |
 | 已确认负结果 | 2 |
 | 数据冲突条目 | 9（dataConflicts2026）+ 1（communityConflicts） |
 | 农场黑名单域 | 40 |

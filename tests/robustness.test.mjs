@@ -256,6 +256,38 @@ section('B3. 父级置信度不得埋没子级高置信数据')
   ok('innerHighlights 不得污染无关节点（如 collectionBonus）',
     !PD.collectionBonus.innerHighlights)
 }
+// ════════════════════════════════════════ B4. cautions 卫生
+section('B4. cautions 不得有孤立片段 / 过时结论')
+{
+  const cs = PD.cautions
+  // 2026-10-19 发现：删多行条目时只删了前半段，留下「本项目仍按 170 出表。」
+  // 与「不能拿来估算满级成本。另…」两条孤立尾巴 —— 语义残缺但对用户是噪音。
+  const orphans = cs.filter((c) => {
+    const s = c.trim()
+    return (
+      s.length < 30 ||
+      s.startsWith('本项目仍按') || // 已被官方 175 确证，且句首突兀
+      s.startsWith('不能拿来估算') || // 缺主语，是上一句的尾巴
+      s.startsWith('。') ||
+      s.startsWith('，') ||
+      (/^[^。]{0,8}。/.test(s) === false && s.length < 20)
+    )
+  })
+  ok('cautions 无孤立片段', orphans.length === 0, orphans.slice(0, 3).map((s) => s.slice(0, 30)).join(' | '))
+
+  // 不得残留已被推翻的结论
+  ok('不再声称「仍按 170 出表」',
+    !cs.some((c) => c.includes('仍按 170 出表')))
+  ok('不再声称「等级上限可能 175 但未确证」',
+    !cs.some((c) => c.includes('等级上限可能是 175')))
+
+  // 关键新结论必须在 cautions 里
+  ok('cautions 已含通灵总数 57 的定案',
+    cs.some((c) => c.includes('通灵总数已由游戏内截图定案')))
+  ok('cautions 已含三口径不可混用的警告',
+    cs.some((c) => c.includes('收集度用 57') && c.includes('资源预算用 14')))
+}
+
 // ════════════════════════════════════════ C. 语法下限
 section('C. 构建产物语法下限（ES2015）')
 {
