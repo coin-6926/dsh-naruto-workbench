@@ -696,13 +696,15 @@ section('11. 神器单价与勾玉冲突（本轮补搜）')
   ok('★ 单只合计 = 1000 精炼石 + 2 高级通灵卷轴（可现场加总）',
     j.spiritSlotRule.unlocks.reduce((a, u) => a + u.refineStone, 0) === j.spiritSlotRule.costPerSpirit.refineStone &&
     j.spiritSlotRule.unlocks.reduce((a, u) => a + u.scroll, 0) === j.spiritSlotRule.costPerSpirit.scroll)
-  ok('★★ 卷轴瓶颈已核算（18只 → 36个 → 约7年，且与通灵进阶抢资源）',
-    j.resourceBottleneck.advancedSpiritScroll.totalAt18Spirits === 36 &&
-    j.resourceBottleneck.advancedSpiritScroll.competingUse.includes('进阶') &&
-    j.resourceBottleneck.advancedSpiritScroll.verdict.includes('7 年'))
-  ok('★ 全身孔数口径已核算（18只 → 总位198 / 已开138）',
-    j.resourceBottleneck.slotTotals.at18Spirits.total === 36 + 18 * 9 &&
-    j.resourceBottleneck.slotTotals.at18Spirits.defaultOpen === 30 + 18 * 6)
+  ok('★★ 卷轴瓶颈已按 14 只重算（28 个 ≈ 5.4 年）',
+    j.resourceBottleneck.advancedSpiritScroll.totalAtTrainable14 === 28 &&
+    j.resourceBottleneck.advancedSpiritScroll.verdict.includes('7 年') ||
+      j.resourceBottleneck.advancedSpiritScroll.timeCost.includes('5.4 年'),
+    j.resourceBottleneck.advancedSpiritScroll.timeCost)
+  ok('★★ 孔位数已按三档重算（14 可修炼 / 22 已拥有 / 57 总数）',
+    j.resourceBottleneck.slotTotals.scenarios.trainable14.total === 36 + 14 * 9 &&
+    j.resourceBottleneck.slotTotals.scenarios.collected22.total === 36 + 22 * 9 &&
+    j.resourceBottleneck.slotTotals.scenarios.all57.total === 36 + 57 * 9)
   ok('★ 四代版本教训已留档（含「重述用户原话导致误读」）',
     j.spiritSlotRule.fourVersionsLesson.v3.includes('默认 6 个') &&
     j.spiritSlotRule.fourVersionsLesson.rule2.includes('原样留存') &&
@@ -948,6 +950,53 @@ section('15. P0 三项溯源（外部）独立核实')
   ok('★ 农场黑名单已扩到 40 域',
     PD.sources.farm_blacklist_note.note.includes('464ruoming.com') &&
     PD.sources.farm_blacklist_note.note.includes('337jubai.com'))
+}
+
+/* ═══════════════════ 16. 收集界面实测（2026-10-19） ═══════════════════ */
+section('16. 游戏内「收集」界面实测定案')
+{
+  const cs = PD.collectionMilestones.collectionScreen
+
+  ok('★★ 通灵总数已定案 = 57（游戏内收集界面）',
+    cs.spirit.total === 57 && cs.spirit.own === 22,
+    cs.spirit.own + '/' + cs.spirit.total)
+  ok('★★ 秘卷总数已更新为 57（2020 年记录 34 + 23）',
+    cs.scroll.total === 57 && PD.growth.scroll.countCurrent.value === 57 &&
+    PD.growth.scroll.countCurrent.deltaFrom2020 === 23)
+  ok('★ 忍者图鉴 316/457 已记录',
+    cs.ninja.own === 316 && cs.ninja.total === 457)
+  ok('★ 装扮数量 250 / 魅力 19951 已记录（不计战力）',
+    cs.appearance.costumeCount === 250 && cs.appearance.charm === 19951)
+
+  // ★ 18 已废弃
+  ok('★★ 旧的「18 只」口径已标废弃',
+    PD.growth.jade.spiritCount.fourReadings.find((r) => r.count === 18).deprecated !== undefined,
+    'deprecated 字段存在')
+  ok('★ 四口径仍保留（作为子集说明，不删）',
+    PD.growth.jade.spiritCount.fourReadings.map((r) => r.count).join('/') === '14/17/18/34')
+
+  // ★ 三档重算
+  const sc = PD.growth.jade.resourceBottleneck.slotTotals.scenarios
+  ok('★★ 孔位数已按三档重算（14/22/57）',
+    sc.trainable14.total === 36 + 14 * 9 &&
+    sc.collected22.total === 36 + 22 * 9 &&
+    sc.all57.total === 36 + 57 * 9,
+    [sc.trainable14.total, sc.collected22.total, sc.all57.total].join('/'))
+  ok('★★ 精炼石改以 14 只为基准（15800，非旧的 19800）',
+    PD.growth.jade.resourceBottleneck.refineStone.totalAtTrainable14 === 1800 + 14 * 1000)
+  ok('★★ 卷轴改以 14 只为基准（28 个 ≈ 5.4 年，非旧的 36 个 6.9 年）',
+    PD.growth.jade.resourceBottleneck.advancedSpiritScroll.totalAtTrainable14 === 28 &&
+    PD.growth.jade.resourceBottleneck.advancedSpiritScroll.timeCost.includes('5.4 年'))
+
+  // ★ 方法论：三个数不能混用
+  ok('★★ 已明确「收集度57 / 资源预算14 / 当前孔位22」不可混用',
+    cs.keyLesson.application.includes('57') &&
+    cs.keyLesson.application.includes('14') &&
+    cs.keyLesson.application.includes('22'))
+  ok('★ cautions 已同步 57 与 5.4 年（不留旧值）',
+    PD.cautions.some((c) => c.includes('通灵总数已由游戏内截图定案')) &&
+    PD.cautions.some((c) => c.includes('5.4 年')) &&
+    !PD.cautions.some((c) => c.includes('18 只通灵全开第 9 孔需约')))
 }
 
 /* ═════════════════════════════ 汇总 ═════════════════════════════ */

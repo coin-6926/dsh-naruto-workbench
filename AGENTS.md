@@ -34,7 +34,7 @@ cd dsh-naruto-workbench
 node tests/selftest.mjs
 ```
 
-期望结尾：`工作台自测：通过 239 项，失败 0 项` / `全部通过 ✓`
+期望结尾：`工作台自测：通过 250 项，失败 0 项` / `全部通过 ✓`
 
 - 若报 `node: command not found` → 用户没有 Node。**直接走路径 A**（不需要 Node 也能用 HTML）。
 - 若项数不同但失败 0 → 可以继续，只是版本比文档新。
@@ -149,7 +149,7 @@ dev_plugin_status
 
 期望插件清单里出现：
 ```
-- [active] naruto-workbench (@dsh-external/naruto-workbench)
+- [active] naruto-power-workbench
 ```
 
 `[active]` 才算成功；`[no-fiber]` 或 `failed` 都是失败（见 §6）。
@@ -162,7 +162,7 @@ dev_plugin_status
 | `naruto_analyze` | 传面板 → 算战力构成、短板、虚战、目标倒推 |
 | `naruto_save_panel` | 存取用户在面板里填的数据 |
 
-**卸载**：`dev_uninject_plugin  match = naruto-workbench`
+**卸载**：`dev_uninject_plugin  match = naruto-power-workbench`
 
 ### 4.2 没有 injector —— 手工装配（需要重启 DSH）
 
@@ -177,9 +177,9 @@ dev_plugin_status
    ```json
    {
      "dependencies": {
-       "@dsh-external/naruto-workbench": "link:<克隆下来的绝对路径>"
+       "naruto-power-workbench": "link:<克隆下来的绝对路径>"
      },
-     "bundles": ["@dsh-external/naruto-workbench"]
+     "bundles": ["naruto-power-workbench"]
    }
    ```
 
@@ -191,7 +191,7 @@ dev_plugin_status
 
    ```bash
    # Linux / macOS
-   ln -s <绝对路径> ~/.dsh/profiles/web/node_modules/@dsh-external/naruto-workbench
+   ln -s <绝对路径> ~/.dsh/profiles/web/node_modules/naruto-power-workbench
    ```
 
 4. **重启 DSH**，然后用 `dev_plugin_status` 或设置页插件清单确认 `[active]`。
@@ -276,7 +276,7 @@ node tools/fetch-official.mjs --tags
 | 插件 `[no-fiber]` / `failed` | 依赖缺失或 `register` 返回值不规范 | 本插件**零运行时依赖**，正常情况下不该失败；先看 `dev_plugin_status` 的失败审计日志 |
 | `duplicate loader entry id` 启动崩溃 | 反复 inject/uninject 在 profile patch 里留下重复条目 | 用 `dev_fix_patch check=true` 先查，再 `dev_fix_patch` 修 |
 | `git push` 报 443 连接失败 | 网络限制 | 用 `gh api` Git Data API 推送；内容一致性用逐字符比对确认 |
-| `selftest` 项数不是 239 | 版本更新 | 只要「失败 0 项」即可，项数会随版本增加 |
+| `selftest` 项数不是 250 | 版本更新 | 只要「失败 0 项」即可，项数会随版本增加 |
 | 浏览器 E2E 打印「跳过」 | 本机没装 Chrome/Edge | 不算失败；可设 `CHROME_PATH` 环境变量指定浏览器 |
 
 ---
@@ -289,7 +289,7 @@ node tools/fetch-official.mjs --tags
 2. `node tools/build-portable.mjs` → 四个产物 + 体积
 3. `node dist/naruto-cli.cjs --sample` → 总战力数值
 
-装了插件再加一项：`dev_plugin_status` 里出现 `[active] naruto-workbench`。
+装了插件再加一项：`dev_plugin_status` 里出现 `[active] naruto-power-workbench`。
 
 ---
 
@@ -304,5 +304,5 @@ src/portable/ui.src.html   单文件 HTML 模板
 tools/build-portable.mjs ★ 把上面两个打包成 dist/
 dist/                    ★ 构建产物（已提交，clone 即可用）
 docs/DATA-SOURCES.md     ★ 数据来源与置信度审计（回答数值前必读）
-tests/                   selftest(239) / portable(157) / robustness(37) / stress(8) / browser.e2e(11)
+tests/                   selftest(250) / portable(157) / robustness(37) / stress(8) / browser.e2e(11)
 ```

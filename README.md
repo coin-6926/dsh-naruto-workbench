@@ -2,7 +2,7 @@
 
 [![DeepSeek Harness](https://img.shields.io/badge/DSH-plugin-blue)](https://github.com/coin-6926/dsh-naruto-workbench)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![tests](https://img.shields.io/badge/tests-452%20passed-brightgreen)](tests/)
+[![tests](https://img.shields.io/badge/tests-462%20passed-brightgreen)](tests/)
 [![npm](https://img.shields.io/badge/npm-naruto--power--workbench-cb3837)](https://www.npmjs.com/package/naruto-power-workbench)
 [![node](https://img.shields.io/badge/node-%E2%89%A518-339933)](package.json)
 [![dsh-plugin](https://img.shields.io/badge/dsh--plugin-ready-blueviolet)](#-把这一行丢给你的-agent)
@@ -86,7 +86,7 @@ npx naruto-power-workbench --help
 ```bash
 git clone https://github.com/coin-6926/dsh-naruto-workbench.git
 cd dsh-naruto-workbench
-node tests/selftest.mjs        # 期望：通过 239 项，失败 0 项
+node tests/selftest.mjs        # 期望：通过 250 项，失败 0 项
 ```
 
 - **只想用工具**：双击 `dist/naruto-workbench.html`（已提交，无需构建）

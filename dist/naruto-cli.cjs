@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*!
  * naruto-workbench CLI
- * 生成时间 2026-10-18T14:17:10.099Z
+ * 生成时间 2026-10-19T02:53:41.143Z
  * 本文件由 tools/build-portable.mjs 自动生成，请勿手改。
  */
 /* eslint-disable */

@@ -1,5 +1,5 @@
-总量: 117
-分布: {"high":28,"medium":37,"low":46,"unverified":6}
+总量: 120
+分布: {"high":31,"medium":37,"low":46,"unverified":6}
 
 ⚠ 父级置信度低于子级高置信项的节点：5 处
   root.growth.artifact  (父级 medium)
